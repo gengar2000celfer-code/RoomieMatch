@@ -40,7 +40,9 @@ function horario(a, b) {
 export function calcularCompatibilidad(yo, otro) {
   const puntos = {
     presupuesto: presupuesto(yo, otro),
-    ubicacion: Math.max(0, 1 - otro.distanciaKm / 10),
+    ubicacion: otro.distanciaKm != null
+      ? Math.max(0, 1 - otro.distanciaKm / 10)
+        : (yo.zona && yo.zona.toLowerCase() === (otro.zona || "").toLowerCase() ? 1 : 0.3),
     ruido: ordinal("ruido", yo.ruido, otro.ruido),
     horario: horario(yo.horario, otro.horario),
     limpieza: ordinal("limpieza", yo.limpieza, otro.limpieza),
