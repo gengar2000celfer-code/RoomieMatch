@@ -85,6 +85,8 @@
               aria-hidden="true"></span>
           </button>
 
+          <p class="legal">Al continuar con Google aceptas los términos y la política de privacidad.</p>
+          
           <div class="sep"><span>o con tu correo</span></div>
 
           <form id="form" role="tabpanel" novalidate>
@@ -168,269 +170,329 @@
       </div>
     </main>
   </div>
+<script type="module">
+  import { auth, db, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "./js/firebase.js";
+  import {
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile,
+    sendPasswordResetEmail, sendEmailVerification, setPersistence,
+    browserLocalPersistence, browserSessionPersistence, getAdditionalUserInfo
+  } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+  import { doc, getDoc, setDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-  <script type="module">
-    import {auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged} from "./js/firebase.js";
-    import {
-      createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile,
-      sendPasswordResetEmail, sendEmailVerification, setPersistence,
-      browserLocalPersistence, browserSessionPersistence, getAdditionalUserInfo
-    } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+  // Páginas de destino. Si renombraste inicio.html como index.html, cámbialo aquí.
+  const DESTINO = "index.html";
+  const PERFIL = "perfil.html";
+  const VERSION_TERMINOS = "1.0";
 
-    // Páginas de destino. Si renombraste inicio.html como index.html, cámbialo aquí.
-    const DESTINO = "index.html";
-    const PERFIL = "perfil.html";
+  const $ = (id) => document.getElementById(id);
+  let modo = "entrar";
+  let ocupado = false;
+  let fallos = 0;
+  let bloqueoHasta = 0;
+  try { bloqueoHasta = Number(sessionStorage.getItem("rm_bloqueo")) || 0; } catch (_) {}
 
-    const $ = (id) => document.getElementById(id);
-    let modo = "entrar";
-    let ocupado = false;
-    let fallos = 0, bloqueoHasta = 0;
+  // Si ya hay sesión, entra directo
+  onAuthStateChanged(auth, (user) => { if (user && !ocupado) location.replace(DESTINO); });
 
-    // Si ya hay sesión, entra directo
-    onAuthStateChanged(auth, (user) => {if (user && !ocupado) location.replace(DESTINO);});
+  // ---------- Utilidades ----------
+  const ERRORES = {
+    "auth/invalid-credential": "Correo o contraseña incorrectos.",
+    "auth/wrong-password": "Correo o contraseña incorrectos.",
+    "auth/user-not-found": "Correo o contraseña incorrectos.",
+    "auth/invalid-email": "El correo no es válido.",
+    "auth/email-already-in-use": "Ya existe una cuenta con ese correo. Prueba iniciar sesión.",
+    "auth/weak-password": "La contraseña es demasiado débil.",
+    "auth/password-does-not-meet-requirements": "La contraseña no cumple los requisitos de seguridad.",
+    "auth/too-many-requests": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+    "auth/user-disabled": "Esta cuenta fue deshabilitada.",
+    "auth/popup-closed-by-user": "Cerraste la ventana de Google antes de terminar.",
+    "auth/cancelled-popup-request": "Se canceló el acceso con Google.",
+    "auth/popup-blocked": "Tu navegador bloqueó la ventana. Permite ventanas emergentes para este sitio.",
+    "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase (Authentication → Settings → Authorized domains).",
+    "auth/operation-not-allowed": "Ese método de acceso no está activado en Firebase.",
+    "auth/account-exists-with-different-credential": "Ese correo ya se registró con otro método de acceso.",
+    "auth/network-request-failed": "Sin conexión. Revisa tu internet."
+  };
+  const textoError = (e) => ERRORES[e && e.code] || ("Ocurrió un error inesperado" + (e && e.code ? " (" + e.code + ")" : "") + ".");
 
-    // ---------- Utilidades ----------
-    const ERRORES = {
-      "auth/invalid-credential": "Correo o contraseña incorrectos.",
-      "auth/wrong-password": "Correo o contraseña incorrectos.",
-      "auth/user-not-found": "Correo o contraseña incorrectos.",
-      "auth/invalid-email": "El correo no es válido.",
-      "auth/email-already-in-use": "Ya existe una cuenta con ese correo. Prueba iniciar sesión.",
-      "auth/weak-password": "La contraseña es demasiado débil.",
-      "auth/too-many-requests": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
-      "auth/user-disabled": "Esta cuenta fue deshabilitada.",
-      "auth/popup-closed-by-user": "Cerraste la ventana de Google antes de terminar.",
-      "auth/cancelled-popup-request": "Se canceló el acceso con Google.",
-      "auth/popup-blocked": "Tu navegador bloqueó la ventana. Permite ventanas emergentes para este sitio.",
-      "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase (Authentication → Settings → Authorized domains).",
-      "auth/operation-not-allowed": "Ese método de acceso no está activado en Firebase.",
-      "auth/account-exists-with-different-credential": "Ese correo ya se registró con otro método de acceso.",
-      "auth/network-request-failed": "Sin conexión. Revisa tu internet."
-    };
-    const textoError = (e) => ERRORES[e && e.code] || ("Ocurrió un error inesperado" + (e && e.code ? " (" + e.code + ")" : "") + ".");
+  function setEstado(el, texto, tipo) {
+    el.hidden = !texto;
+    el.className = "estado " + (tipo || "");
+    el.textContent = texto || "";
+  }
+  function cargando(btn, si) { btn.disabled = si; btn.classList.toggle("cargando", si); }
 
-    function setEstado(el, texto, tipo) {
-      el.hidden = !texto;
-      el.className = "estado " + (tipo || "");
-      el.textContent = texto || "";
+  const limpiarNombre = (t) =>
+    String(t || "").replace(/[\u0000-\u001F\u007F<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 60);
+
+  const CAMPOS = { nombre: "eNombre", correo: "eCorreo", pass: "ePass", pass2: "ePass2", terminos: "eTerminos" };
+  function limpiarErrores() {
+    for (const id in CAMPOS) {
+      $(CAMPOS[id]).textContent = "";
+      $(id).removeAttribute("aria-invalid");
     }
-    function cargando(btn, si) {btn.disabled = si; btn.classList.toggle("cargando", si);}
+  }
+  function campoError(id, texto) {
+    $(CAMPOS[id]).textContent = texto;
+    $(id).setAttribute("aria-invalid", "true");
+  }
 
-    const CAMPOS = {nombre: "eNombre", correo: "eCorreo", pass: "ePass", pass2: "ePass2", terminos: "eTerminos"};
-    function limpiarErrores() {
-      for (const id in CAMPOS) {
-        $(CAMPOS[id]).textContent = "";
-        $(id).removeAttribute("aria-invalid");
+  const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  const reglas = (p) => ({ len: p.length >= 8, let: /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(p), num: /\d/.test(p) });
+
+  function bloqueado() {
+    const s = Math.ceil((bloqueoHasta - Date.now()) / 1000);
+    if (s > 0) { setEstado($("estado"), "Demasiados intentos fallidos. Espera " + s + " s.", "error"); return true; }
+    return false;
+  }
+  function registrarFallo(code) {
+    if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(code)) {
+      fallos++;
+      if (fallos >= 5) {
+        bloqueoHasta = Date.now() + 30000;
+        fallos = 0;
+        try { sessionStorage.setItem("rm_bloqueo", String(bloqueoHasta)); } catch (_) {}
       }
     }
-    function campoError(id, texto) {
-      $(CAMPOS[id]).textContent = texto;
-      $(id).setAttribute("aria-invalid", "true");
-    }
+  }
 
-    const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
-    const reglas = (p) => ({len: p.length >= 8, let: /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(p), num: /\d/.test(p)});
+  async function fijarPersistencia() {
+    const recordar = modo === "crear" ? true : $("recordar").checked;
+    await setPersistence(auth, recordar ? browserLocalPersistence : browserSessionPersistence);
+  }
 
-    function bloqueado() {
-      const s = Math.ceil((bloqueoHasta - Date.now()) / 1000);
-      if (s > 0) {setEstado($("estado"), "Demasiados intentos fallidos. Espera " + s + " s.", "error"); return true;}
-      return false;
-    }
-    function registrarFallo(code) {
-      if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(code)) {
-        fallos++;
-        if (fallos >= 5) {bloqueoHasta = Date.now() + 30000; fallos = 0;}
+  // ---------- Guardar al usuario en Firestore ----------
+  // usuarios/{uid} = datos públicos · cuentas/{uid} = datos privados
+  async function registrarUsuario(user, proveedor, esNuevo) {
+    try {
+      const refPub = doc(db, "usuarios", user.uid);
+      const refPriv = doc(db, "cuentas", user.uid);
+      const [pub, priv] = await Promise.all([getDoc(refPub), getDoc(refPriv)]);
+
+      if (!pub.exists()) {
+        await setDoc(refPub, {
+          nombre: limpiarNombre(user.displayName) || "Usuario",
+          foto: user.photoURL || "",
+          rol: "estudiante",
+          perfilCompleto: false,
+          creado: serverTimestamp()
+        });
       }
-    }
 
-    async function fijarPersistencia() {
-      const recordar = modo === "crear" ? true : $("recordar").checked;
-      await setPersistence(auth, recordar ? browserLocalPersistence : browserSessionPersistence);
-    }
-
-    // ---------- Modo: entrar / crear ----------
-    function setModo(m, enfocar = true) {
-      modo = m;
-      const crear = m === "crear";
-      $("tabEntrar").setAttribute("aria-selected", String(!crear));
-      $("tabCrear").setAttribute("aria-selected", String(crear));
-      $("tabEntrar").tabIndex = crear ? -1 : 0;
-      $("tabCrear").tabIndex = crear ? 0 : -1;
-      $("cNombre").hidden = !crear;
-      $("cPass2").hidden = !crear;
-      $("fuerza").hidden = !crear;
-      $("reglas").hidden = !crear;
-      $("filaRecordar").hidden = crear;
-      $("filaTerminos").hidden = !crear;
-      $("titulo").textContent = crear ? "Crea tu cuenta" : "Bienvenido de vuelta";
-      $("subtitulo").textContent = crear ? "Un minuto y empiezas a buscar roomies compatibles." : "Inicia sesión para ver tus coincidencias.";
-      $("txtEnviar").textContent = crear ? "Crear mi cuenta" : "Entrar";
-      $("pass").autocomplete = crear ? "new-password" : "current-password";
-      $("pass").placeholder = crear ? "Mínimo 8 caracteres" : "Tu contraseña";
-      limpiarErrores();
-      setEstado($("estado"), "");
-      if (enfocar) (crear ? $("nombre") : $("correo")).focus();
-    }
-    $("tabEntrar").onclick = () => setModo("entrar");
-    $("tabCrear").onclick = () => setModo("crear");
-    [$("tabEntrar"), $("tabCrear")].forEach((t) => t.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        const siguiente = modo === "entrar" ? "crear" : "entrar";
-        setModo(siguiente, false);
-        (siguiente === "crear" ? $("tabCrear") : $("tabEntrar")).focus();
-      }
-    }));
-
-    // ---------- Contraseña: mostrar, caps, fuerza, requisitos ----------
-    $("btnVer").onclick = () => {
-      const ver = $("pass").type === "password";
-      $("pass").type = ver ? "text" : "password";
-      $("pass2").type = ver ? "text" : "password";
-      $("btnVer").textContent = ver ? "Ocultar" : "Mostrar";
-      $("btnVer").setAttribute("aria-pressed", String(ver));
-      $("btnVer").setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
-    };
-
-    ["pass", "pass2"].forEach((id) => {
-      const aviso = (e) => {$("caps").hidden = !(e.getModifierState && e.getModifierState("CapsLock"));};
-      $(id).addEventListener("keydown", aviso);
-      $(id).addEventListener("keyup", aviso);
-      $(id).addEventListener("blur", () => {$("caps").hidden = true;});
-    });
-
-    $("pass").addEventListener("input", () => {
-      const p = $("pass").value;
-      const r = reglas(p);
-      document.querySelectorAll("#reglas li").forEach((li) => li.classList.toggle("ok", r[li.dataset.r]));
-      let pts = 0;
-      if (p.length >= 8) pts++;
-      if (p.length >= 12) pts++;
-      if (/[a-záéíóúñ]/.test(p) && /[A-ZÁÉÍÓÚÑ]/.test(p)) pts++;
-      if (/\d/.test(p)) pts++;
-      if (/[^A-Za-z0-9]/.test(p)) pts++;
-      const nivel = !p ? 0 : pts <= 1 ? 1 : pts === 2 ? 2 : pts === 3 ? 3 : 4;
-      document.querySelectorAll("#fuerza span").forEach((s, i) => s.classList.toggle("on", i < nivel));
-      $("fuerzaTxt").textContent = ["", "Débil", "Regular", "Buena", "Excelente"][nivel];
-      if ($("ePass").textContent) {$("ePass").textContent = ""; $("pass").removeAttribute("aria-invalid");}
-    });
-
-    // Limpia el error de un campo al escribir en él
-    ["nombre", "correo", "pass2"].forEach((id) => $(id).addEventListener("input", () => {
-      $(CAMPOS[id]).textContent = ""; $(id).removeAttribute("aria-invalid");
-    }));
-    $("terminos").addEventListener("change", () => {$("eTerminos").textContent = ""; $("terminos").removeAttribute("aria-invalid");});
-
-    // ---------- Validación ----------
-    function validar() {
-      limpiarErrores();
-      const v = {
-        nombre: $("nombre").value.trim(), correo: $("correo").value.trim(),
-        pass: $("pass").value, pass2: $("pass2").value
+      const datos = {
+        correo: (user.email || "").toLowerCase(),
+        proveedor,
+        correoVerificado: !!user.emailVerified,
+        ultimoAcceso: serverTimestamp()
       };
-      if (modo === "crear" && v.nombre.length < 2) campoError("nombre", "Escribe tu nombre.");
-      if (!v.correo) campoError("correo", "Escribe tu correo.");
-      else if (!emailOk(v.correo)) campoError("correo", "Revisa el formato del correo.");
-      if (!v.pass) campoError("pass", "Escribe tu contraseña.");
-      else if (modo === "crear") {
-        const r = reglas(v.pass);
-        if (!(r.len && r.let && r.num)) campoError("pass", "La contraseña no cumple los requisitos.");
-      }
-      if (modo === "crear") {
-        if (v.pass2 !== v.pass) campoError("pass2", "Las contraseñas no coinciden.");
-        if (!$("terminos").checked) campoError("terminos", "Debes aceptar para continuar.");
-      }
-      const primero = document.querySelector("#form [aria-invalid='true']");
-      if (primero) {primero.focus(); return null;}
-      return v;
-    }
-
-    // ---------- Enviar formulario ----------
-    $("form").onsubmit = async (ev) => {
-      ev.preventDefault();
-      setEstado($("estado"), "");
-      if (ocupado || bloqueado()) return;
-      const v = validar();
-      if (!v) return;
-
-      ocupado = true; cargando($("btnEnviar"), true);
-      try {
-        await fijarPersistencia();
-        if (modo === "crear") {
-          const cred = await createUserWithEmailAndPassword(auth, v.correo, v.pass);
-          await updateProfile(cred.user, {displayName: v.nombre});
-          try {await sendEmailVerification(cred.user);} catch (_) { }
-          location.replace(PERFIL);
-        } else {
-          await signInWithEmailAndPassword(auth, v.correo, v.pass);
-          try {
-            if ($("recordar").checked) localStorage.setItem("rm_correo", v.correo);
-            else localStorage.removeItem("rm_correo");
-          } catch (_) { }
-          location.replace(DESTINO);
+      if (!priv.exists()) {
+        datos.creado = serverTimestamp();
+        if (esNuevo) {
+          datos.aceptoTerminos = serverTimestamp();
+          datos.versionTerminos = VERSION_TERMINOS;
         }
-      } catch (e) {
-        ocupado = false; cargando($("btnEnviar"), false);
-        registrarFallo(e.code);
-        setEstado($("estado"), textoError(e), "error");
       }
-    };
-
-    // ---------- Google ----------
-    $("btnGoogle").onclick = async () => {
-      if (ocupado) return;
-      setEstado($("estado"), "");
-      ocupado = true; cargando($("btnGoogle"), true);
-      try {
-        await fijarPersistencia();
-        const res = await signInWithPopup(auth, new GoogleAuthProvider());
-        const info = getAdditionalUserInfo(res);
-        location.replace(info && info.isNewUser ? PERFIL : DESTINO);
-      } catch (e) {
-        ocupado = false; cargando($("btnGoogle"), false);
-        setEstado($("estado"), textoError(e), "error");
-      }
-    };
-
-    // ---------- Recuperar contraseña ----------
-    function verRecuperar(si) {
-      $("vistaAuth").hidden = si;
-      $("vistaRecuperar").hidden = !si;
-      setEstado($("estadoRec"), "");
-      $("eCorreoRec").textContent = "";
-      if (si) {$("correoRec").value = $("correo").value.trim(); $("correoRec").focus();}
-      else $("correo").focus();
+      await setDoc(refPriv, datos, { merge: true });
+    } catch (e) {
+      console.warn("No se pudo guardar el registro del usuario:", e.code || e);
     }
-    $("btnOlvide").onclick = () => verRecuperar(true);
-    $("btnAtras").onclick = () => verRecuperar(false);
+  }
 
-    $("formRec").onsubmit = async (ev) => {
-      ev.preventDefault();
-      const correo = $("correoRec").value.trim();
-      $("eCorreoRec").textContent = "";
-      setEstado($("estadoRec"), "");
-      if (!emailOk(correo)) {
-        $("eCorreoRec").textContent = correo ? "Revisa el formato del correo." : "Escribe tu correo.";
-        $("correoRec").focus();
-        return;
-      }
-      cargando($("btnRec"), true);
-      try {
-        await sendPasswordResetEmail(auth, correo);
-        setEstado($("estadoRec"), "Si ese correo tiene una cuenta, te enviamos un enlace. Revisa también la carpeta de spam.", "ok");
-      } catch (e) {
-        setEstado($("estadoRec"), textoError(e), "error");
-      }
-      cargando($("btnRec"), false);
+  // ---------- Modo: entrar / crear ----------
+  function setModo(m, enfocar = true) {
+    modo = m;
+    const crear = m === "crear";
+    $("tabEntrar").setAttribute("aria-selected", String(!crear));
+    $("tabCrear").setAttribute("aria-selected", String(crear));
+    $("tabEntrar").tabIndex = crear ? -1 : 0;
+    $("tabCrear").tabIndex = crear ? 0 : -1;
+    $("cNombre").hidden = !crear;
+    $("cPass2").hidden = !crear;
+    $("fuerza").hidden = !crear;
+    $("reglas").hidden = !crear;
+    $("filaRecordar").hidden = crear;
+    $("filaTerminos").hidden = !crear;
+    $("titulo").textContent = crear ? "Crea tu cuenta" : "Bienvenido de vuelta";
+    $("subtitulo").textContent = crear ? "Un minuto y empiezas a buscar roomies compatibles." : "Inicia sesión para ver tus coincidencias.";
+    $("txtEnviar").textContent = crear ? "Crear mi cuenta" : "Entrar";
+    $("pass").autocomplete = crear ? "new-password" : "current-password";
+    $("pass").placeholder = crear ? "Mínimo 8 caracteres" : "Tu contraseña";
+    limpiarErrores();
+    setEstado($("estado"), "");
+    if (enfocar) (crear ? $("nombre") : $("correo")).focus();
+  }
+  $("tabEntrar").onclick = () => setModo("entrar");
+  $("tabCrear").onclick = () => setModo("crear");
+  [$("tabEntrar"), $("tabCrear")].forEach((t) => t.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      const siguiente = modo === "entrar" ? "crear" : "entrar";
+      setModo(siguiente, false);
+      (siguiente === "crear" ? $("tabCrear") : $("tabEntrar")).focus();
+    }
+  }));
+
+  // ---------- Contraseña: mostrar, caps, fuerza, requisitos ----------
+  $("btnVer").onclick = () => {
+    const ver = $("pass").type === "password";
+    $("pass").type = ver ? "text" : "password";
+    $("pass2").type = ver ? "text" : "password";
+    $("btnVer").textContent = ver ? "Ocultar" : "Mostrar";
+    $("btnVer").setAttribute("aria-pressed", String(ver));
+    $("btnVer").setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
+  };
+
+  ["pass", "pass2"].forEach((id) => {
+    const aviso = (e) => { $("caps").hidden = !(e.getModifierState && e.getModifierState("CapsLock")); };
+    $(id).addEventListener("keydown", aviso);
+    $(id).addEventListener("keyup", aviso);
+    $(id).addEventListener("blur", () => { $("caps").hidden = true; });
+  });
+
+  $("pass").addEventListener("input", () => {
+    const p = $("pass").value;
+    const r = reglas(p);
+    document.querySelectorAll("#reglas li").forEach((li) => li.classList.toggle("ok", r[li.dataset.r]));
+    let pts = 0;
+    if (p.length >= 8) pts++;
+    if (p.length >= 12) pts++;
+    if (/[a-záéíóúñ]/.test(p) && /[A-ZÁÉÍÓÚÑ]/.test(p)) pts++;
+    if (/\d/.test(p)) pts++;
+    if (/[^A-Za-z0-9]/.test(p)) pts++;
+    const nivel = !p ? 0 : pts <= 1 ? 1 : pts === 2 ? 2 : pts === 3 ? 3 : 4;
+    document.querySelectorAll("#fuerza span").forEach((s, i) => s.classList.toggle("on", i < nivel));
+    $("fuerzaTxt").textContent = ["", "Débil", "Regular", "Buena", "Excelente"][nivel];
+    if ($("ePass").textContent) { $("ePass").textContent = ""; $("pass").removeAttribute("aria-invalid"); }
+  });
+
+  ["nombre", "correo", "pass2"].forEach((id) => $(id).addEventListener("input", () => {
+    $(CAMPOS[id]).textContent = ""; $(id).removeAttribute("aria-invalid");
+  }));
+  $("terminos").addEventListener("change", () => { $("eTerminos").textContent = ""; $("terminos").removeAttribute("aria-invalid"); });
+
+  // ---------- Validación ----------
+  function validar() {
+    limpiarErrores();
+    const v = {
+      nombre: limpiarNombre($("nombre").value),
+      correo: $("correo").value.trim().toLowerCase(),
+      pass: $("pass").value,
+      pass2: $("pass2").value
     };
+    if (modo === "crear" && v.nombre.length < 2) campoError("nombre", "Escribe tu nombre.");
+    if (!v.correo) campoError("correo", "Escribe tu correo.");
+    else if (!emailOk(v.correo)) campoError("correo", "Revisa el formato del correo.");
+    if (!v.pass) campoError("pass", "Escribe tu contraseña.");
+    else if (modo === "crear") {
+      const r = reglas(v.pass);
+      if (!(r.len && r.let && r.num)) campoError("pass", "La contraseña no cumple los requisitos.");
+    }
+    if (modo === "crear") {
+      if (v.pass2 !== v.pass) campoError("pass2", "Las contraseñas no coinciden.");
+      if (!$("terminos").checked) campoError("terminos", "Debes aceptar para continuar.");
+    }
+    const primero = document.querySelector("#form [aria-invalid='true']");
+    if (primero) { primero.focus(); return null; }
+    return v;
+  }
 
-    // ---------- Conexión ----------
-    window.addEventListener("offline", () => setEstado($("estado"), "Sin conexión a internet.", "error"));
-    window.addEventListener("online", () => setEstado($("estado"), ""));
+  // ---------- Enviar formulario ----------
+  $("form").onsubmit = async (ev) => {
+    ev.preventDefault();
+    setEstado($("estado"), "");
+    if (ocupado || bloqueado()) return;
+    const v = validar();
+    if (!v) return;
 
-    // ---------- Arranque ----------
-    try {const c = localStorage.getItem("rm_correo"); if (c) $("correo").value = c;} catch (_) { }
-    if (new URLSearchParams(location.search).get("modo") === "crear") setModo("crear", false);
-  </script>
+    ocupado = true; cargando($("btnEnviar"), true);
+    try {
+      await fijarPersistencia();
+      if (modo === "crear") {
+        const cred = await createUserWithEmailAndPassword(auth, v.correo, v.pass);
+        await updateProfile(cred.user, { displayName: v.nombre });
+        await registrarUsuario(cred.user, "password", true);
+        try { await sendEmailVerification(cred.user); } catch (_) {}
+        location.replace(PERFIL);
+      } else {
+        const cred = await signInWithEmailAndPassword(auth, v.correo, v.pass);
+        await registrarUsuario(cred.user, "password", false);
+        try {
+          if ($("recordar").checked) localStorage.setItem("rm_correo", v.correo);
+          else localStorage.removeItem("rm_correo");
+        } catch (_) {}
+        location.replace(DESTINO);
+      }
+    } catch (e) {
+      ocupado = false; cargando($("btnEnviar"), false);
+      registrarFallo(e.code);
+      setEstado($("estado"), textoError(e), "error");
+    }
+  };
+
+  // ---------- Google ----------
+  $("btnGoogle").onclick = async () => {
+    if (ocupado) return;
+    setEstado($("estado"), "");
+    ocupado = true; cargando($("btnGoogle"), true);
+    try {
+      await fijarPersistencia();
+      const res = await signInWithPopup(auth, new GoogleAuthProvider());
+      const info = getAdditionalUserInfo(res);
+      const nuevo = !!(info && info.isNewUser);
+      await registrarUsuario(res.user, "google", nuevo);
+      location.replace(nuevo ? PERFIL : DESTINO);
+    } catch (e) {
+      ocupado = false; cargando($("btnGoogle"), false);
+      setEstado($("estado"), textoError(e), "error");
+    }
+  };
+
+  // ---------- Recuperar contraseña ----------
+  function verRecuperar(si) {
+    $("vistaAuth").hidden = si;
+    $("vistaRecuperar").hidden = !si;
+    setEstado($("estadoRec"), "");
+    $("eCorreoRec").textContent = "";
+    if (si) { $("correoRec").value = $("correo").value.trim(); $("correoRec").focus(); }
+    else $("correo").focus();
+  }
+  $("btnOlvide").onclick = () => verRecuperar(true);
+  $("btnAtras").onclick = () => verRecuperar(false);
+
+  $("formRec").onsubmit = async (ev) => {
+    ev.preventDefault();
+    const correo = $("correoRec").value.trim().toLowerCase();
+    $("eCorreoRec").textContent = "";
+    setEstado($("estadoRec"), "");
+    if (!emailOk(correo)) {
+      $("eCorreoRec").textContent = correo ? "Revisa el formato del correo." : "Escribe tu correo.";
+      $("correoRec").focus();
+      return;
+    }
+    cargando($("btnRec"), true);
+    try {
+      await sendPasswordResetEmail(auth, correo);
+      setEstado($("estadoRec"), "Si ese correo tiene una cuenta, te enviamos un enlace. Revisa también la carpeta de spam.", "ok");
+    } catch (e) {
+      setEstado($("estadoRec"), textoError(e), "error");
+    }
+    cargando($("btnRec"), false);
+  };
+
+  // ---------- Conexión y navegadores integrados ----------
+  window.addEventListener("offline", () => setEstado($("estado"), "Sin conexión a internet.", "error"));
+  window.addEventListener("online", () => setEstado($("estado"), ""));
+
+  // Google bloquea el acceso dentro de Instagram, Facebook, TikTok, etc.
+  if (/FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|MicroMessenger/i.test(navigator.userAgent || "")) {
+    setEstado($("estado"), "Estás dentro de otra app. Para usar Google abre esta página en Chrome o Safari, o entra con tu correo y contraseña.", "error");
+  }
+
+  // ---------- Arranque ----------
+  try { const c = localStorage.getItem("rm_correo"); if (c) $("correo").value = c; } catch (_) {}
+  if (new URLSearchParams(location.search).get("modo") === "crear") setModo("crear", false);
+</script>
+                
 </body>
 
 </html>
