@@ -1,140 +1,436 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Acceso · RoomieMatch</title>
-        <link rel="stylesheet" href="css/style.css">
-        </head>
-        <body>
-        <main class="login">
-          <div class="login-caja">
-              <div class="logo">RoomieMatch</div>
-                  <p class="lema">Más que una habitación, es la persona correcta.</p>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4E8F5B">
+  <title>Acceso · RoomieMatch</title>
+  <link rel="stylesheet" href="css/login.css">
+</head>
 
-                      <div class="tabs">
-                            <button id="tabEntrar" class="tab activa" type="button">Iniciar sesión</button>
-                                  <button id="tabCrear" class="tab" type="button">Crear cuenta</button>
-                                      </div>
+<body>
+  <div class="pagina">
 
-                                          <button id="btnGoogle" class="btn claro total" type="button">Continuar con Google</button>
-                                              <p class="separador"><span>o con tu correo</span></p>
+    <!-- Panel de marca -->
+    <section class="marca">
+      <div class="marca-logo">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M6 22 24 6l18 16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M10 21v19h28V21" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="18" cy="27" r="3.5" fill="currentColor" />
+          <circle cx="30" cy="27" r="3.5" fill="currentColor" />
+          <path d="M11.5 39c0-4 3-7 6.5-7s6.5 3 6.5 7z" fill="currentColor" />
+          <path d="M23.5 39c0-4 3-7 6.5-7s6.5 3 6.5 7z" fill="currentColor" />
+          <path d="M34 10c4 0 7 3 7 7-4 0-7-3-7-7z" fill="#A7C957" />
+        </svg>
+        <span>RoomieMatch</span>
+      </div>
 
-                                                  <form id="form" novalidate>
-                                                        <label id="lblNombre" class="campo" hidden>Nombre
-                                                                <input id="nombre" autocomplete="name">
-                                                                      </label>
-                                                                            <label class="campo">Correo
-                                                                                    <input id="correo" type="email" autocomplete="email">
-                                                                                          </label>
-                                                                                                <label class="campo">Contraseña
-                                                                                                        <input id="pass" type="password" autocomplete="current-password">
-                                                                                                              </label>
-                                                                                                                    <label id="lblPass2" class="campo" hidden>Repite la contraseña
-                                                                                                                            <input id="pass2" type="password" autocomplete="new-password">
-                                                                                                                                  </label>
-                                                                                                                                        <button id="btnEnviar" class="btn total" type="submit">Entrar</button>
-                                                                                                                                            </form>
+      <h1>Más que una habitación, <em>es la persona correcta.</em></h1>
+      <p class="marca-texto">Compara horarios, presupuesto, hábitos y más para encontrar al roomie que de verdad encaja
+        contigo.</p>
 
-                                                                                                                                                <button id="btnOlvide" class="enlace" type="button">¿Olvidaste tu contraseña?</button>
-                                                                                                                                                    <p id="aviso" class="aviso-login" role="alert"></p>
-                                                                                                                                                      </div>
-                                                                                                                                                      </main>
+      <div class="vista" aria-hidden="true">
+        <div class="vista-top">
+          <div class="anillo">
+            <svg viewBox="0 0 80 80">
+              <circle class="pista" cx="40" cy="40" r="34" />
+              <circle class="progreso" cx="40" cy="40" r="34" />
+            </svg>
+            <strong>87%</strong>
+          </div>
+          <div class="vista-texto"><b>¡Tienes un gran match!</b><span>Tus preferencias coinciden en la mayoría de los
+              aspectos.</span></div>
+        </div>
+        <ul class="vista-lista">
+          <li><span class="mini">S</span>Sofía Martínez<b>92%</b></li>
+          <li><span class="mini">V</span>Valeria López<b>87%</b></li>
+          <li><span class="mini">D</span>Diego Ramírez<b>78%</b></li>
+        </ul>
+      </div>
 
-                                                                                                                                                      <script type="module">
-                                                                                                                                                        import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "./js/firebase.js";
-                                                                                                                                                          import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail }
-                                                                                                                                                              from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+      <ul class="beneficios">
+        <li>Compatibilidad calculada con tus hábitos</li>
+        <li>Mensajes directos con tus posibles roomies</li>
+        <li>Favoritos para decidir con calma</li>
+      </ul>
 
-                                                                                                                                                                const $ = (id) => document.getElementById(id);
-                                                                                                                                                                  let modoCrear = false;
-                                                                                                                                                                    let ocupado = false;
+      <path d="M100 150C60 150 40 120 40 90c40 0 60 25 60 60z" fill="#A7C957" />
+      <path d="M100 120c40 0 62-25 62-60-40 0-62 25-62 60z" fill="#CDE9C6" />
+      <path d="M100 90C70 80 62 50 70 20c30 10 38 40 30 70z" fill="#DFF5E1" />
+      </svg>
+    </section>
 
-                                                                                                                                                                      // Si ya hay sesión, pasa directo a la app
-                                                                                                                                                                        onAuthStateChanged(auth, (user) => { if (user && !ocupado) location.href = "index.html"; });
+    <!-- Panel de acceso -->
+    <main class="acceso">
+      <div class="tarjeta">
 
-                                                                                                                                                                          const ERRORES = {
-                                                                                                                                                                              "auth/invalid-credential": "Correo o contraseña incorrectos.",
-                                                                                                                                                                                  "auth/invalid-email": "El correo no es válido.",
-                                                                                                                                                                                      "auth/email-already-in-use": "Ya existe una cuenta con ese correo. Prueba iniciar sesión.",
-                                                                                                                                                                                          "auth/weak-password": "La contraseña es muy débil.",
-                                                                                                                                                                                              "auth/too-many-requests": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
-                                                                                                                                                                                                  "auth/popup-closed-by-user": "Cerraste la ventana de Google antes de terminar.",
-                                                                                                                                                                                                      "auth/popup-blocked": "Tu navegador bloqueó la ventana. Permite ventanas emergentes.",
-                                                                                                                                                                                                          "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase.",
-                                                                                                                                                                                                              "auth/operation-not-allowed": "Ese método de acceso no está activado en Firebase.",
-                                                                                                                                                                                                                  "auth/network-request-failed": "Sin conexión. Revisa tu internet."
-                                                                                                                                                                                                                    };
-                                                                                                                                                                                                                      const mostrar = (t, ok = false) => {
-                                                                                                                                                                                                                          $("aviso").textContent = t;
-                                                                                                                                                                                                                              $("aviso").classList.toggle("ok", ok);
-                                                                                                                                                                                                                                };
-                                                                                                                                                                                                                                  const errorTexto = (e) => ERRORES[e.code] || "Ocurrió un error: " + (e.code || e.message);
+        <!-- Vista: iniciar sesión / crear cuenta -->
+        <div id="vistaAuth">
+          <h2 id="titulo">Bienvenido de vuelta</h2>
+          <p class="sub" id="subtitulo">Inicia sesión para ver tus coincidencias.</p>
 
-                                                                                                                                                                                                                                    function cambiarModo(crear) {
-                                                                                                                                                                                                                                        modoCrear = crear;
-                                                                                                                                                                                                                                            $("tabEntrar").classList.toggle("activa", !crear);
-                                                                                                                                                                                                                                                $("tabCrear").classList.toggle("activa", crear);
-                                                                                                                                                                                                                                                    $("lblNombre").hidden = !crear;
-                                                                                                                                                                                                                                                        $("lblPass2").hidden = !crear;
-                                                                                                                                                                                                                                                            $("btnOlvide").hidden = crear;
-                                                                                                                                                                                                                                                                $("btnEnviar").textContent = crear ? "Crear cuenta" : "Entrar";
-                                                                                                                                                                                                                                                                    $("pass").autocomplete = crear ? "new-password" : "current-password";
-                                                                                                                                                                                                                                                                        mostrar("");
-                                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                                            $("tabEntrar").onclick = () => cambiarModo(false);
-                                                                                                                                                                                                                                                                              $("tabCrear").onclick = () => cambiarModo(true);
+          <div class="tabs" role="tablist" aria-label="Tipo de acceso">
+            <button type="button" role="tab" id="tabEntrar" aria-selected="true" aria-controls="form">Iniciar
+              sesión</button>
+            <button type="button" role="tab" id="tabCrear" aria-selected="false" aria-controls="form"
+              tabindex="-1">Crear cuenta</button>
+          </div>
 
-                                                                                                                                                                                                                                                                                // Google
-                                                                                                                                                                                                                                                                                  $("btnGoogle").onclick = async () => {
-                                                                                                                                                                                                                                                                                      ocupado = true;
-                                                                                                                                                                                                                                                                                          try {
-                                                                                                                                                                                                                                                                                                await signInWithPopup(auth, new GoogleAuthProvider());
-                                                                                                                                                                                                                                                                                                      location.href = "index.html";
-                                                                                                                                                                                                                                                                                                          } catch (e) { ocupado = false; mostrar(errorTexto(e)); }
-                                                                                                                                                                                                                                                                                                            };
+          <button type="button" id="btnGoogle" class="btn google">
+            <span class="g" aria-hidden="true">G</span><span class="txt">Continuar con Google</span><span class="spin"
+              aria-hidden="true"></span>
+          </button>
 
-                                                                                                                                                                                                                                                                                                              // Correo y contraseña
-                                                                                                                                                                                                                                                                                                                $("form").onsubmit = async (ev) => {
-                                                                                                                                                                                                                                                                                                                    ev.preventDefault();
-                                                                                                                                                                                                                                                                                                                        const correo = $("correo").value.trim();
-                                                                                                                                                                                                                                                                                                                            const pass = $("pass").value;
-                                                                                                                                                                                                                                                                                                                                const nombre = $("nombre").value.trim();
+          <div class="sep"><span>o con tu correo</span></div>
 
-                                                                                                                                                                                                                                                                                                                                    if (!correo || !pass) return mostrar("Escribe tu correo y tu contraseña.");
-                                                                                                                                                                                                                                                                                                                                        if (modoCrear) {
-                                                                                                                                                                                                                                                                                                                                              if (!nombre) return mostrar("Escribe tu nombre.");
-                                                                                                                                                                                                                                                                                                                                                    if (pass.length < 8) return mostrar("La contraseña debe tener al menos 8 caracteres.");
-                                                                                                                                                                                                                                                                                                                                                          if (pass !== $("pass2").value) return mostrar("Las contraseñas no coinciden.");
-                                                                                                                                                                                                                                                                                                                                                              }
+          <form id="form" role="tabpanel" novalidate>
+            <div class="campo" id="cNombre" hidden>
+              <label for="nombre">Nombre</label>
+              <input id="nombre" autocomplete="name" maxlength="60" placeholder="Cómo quieres que te vean">
+              <small class="err" id="eNombre"></small>
+            </div>
 
-                                                                                                                                                                                                                                                                                                                                                                  ocupado = true;
-                                                                                                                                                                                                                                                                                                                                                                      $("btnEnviar").disabled = true;
-                                                                                                                                                                                                                                                                                                                                                                          try {
-                                                                                                                                                                                                                                                                                                                                                                                if (modoCrear) {
-                                                                                                                                                                                                                                                                                                                                                                                        const cred = await createUserWithEmailAndPassword(auth, correo, pass);
-                                                                                                                                                                                                                                                                                                                                                                                                await updateProfile(cred.user, { displayName: nombre });
-                                                                                                                                                                                                                                                                                                                                                                                                        location.href = "perfil.html"; // para completar su perfil
-                                                                                                                                                                                                                                                                                                                                                                                                              } else {
-                                                                                                                                                                                                                                                                                                                                                                                                                      await signInWithEmailAndPassword(auth, correo, pass);
-                                                                                                                                                                                                                                                                                                                                                                                                                              location.href = "index.html";
-                                                                                                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                                                                                                        } catch (e) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                              ocupado = false;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    $("btnEnviar").disabled = false;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          mostrar(errorTexto(e));
-                                                                                                                                                                                                                                                                                                                                                                                                                                                              }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                };
+            <div class="campo">
+              <label for="correo">Correo</label>
+              <input id="correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off"
+                spellcheck="false" placeholder="tucorreo@ejemplo.com">
+              <small class="err" id="eCorreo"></small>
+            </div>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  // Recuperar contraseña
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $("btnOlvide").onclick = async () => {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        const correo = $("correo").value.trim();
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            if (!correo) return mostrar("Escribe tu correo arriba y vuelve a pulsar aquí.");
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                try {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      await sendPasswordResetEmail(auth, correo);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            mostrar("Si ese correo tiene cuenta, te enviamos un enlace para cambiar la contraseña.", true);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                } catch (e) { mostrar(errorTexto(e)); }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  };
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </script>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </html>
+            <div class="campo">
+              <label for="pass">Contraseña</label>
+              <div class="pw">
+                <input id="pass" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+                <button type="button" class="ver" id="btnVer" aria-label="Mostrar contraseña"
+                  aria-pressed="false">Mostrar</button>
+              </div>
+              <small class="caps" id="caps" hidden>Bloq Mayús está activado</small>
+              <small class="err" id="ePass"></small>
+
+              <div class="fuerza" id="fuerza" hidden>
+                <span></span><span></span><span></span><span></span>
+                <em id="fuerzaTxt"></em>
+              </div>
+              <ul class="reglas" id="reglas" hidden>
+                <li data-r="len">8 o más caracteres</li>
+                <li data-r="let">Al menos una letra</li>
+                <li data-r="num">Al menos un número</li>
+              </ul>
+            </div>
+
+            <div class="campo" id="cPass2" hidden>
+              <label for="pass2">Repite la contraseña</label>
+              <input id="pass2" type="password" autocomplete="new-password" placeholder="Escríbela otra vez">
+              <small class="err" id="ePass2"></small>
+            </div>
+
+            <div class="fila" id="filaRecordar">
+              <label class="check"><input type="checkbox" id="recordar" checked><span>Recordarme</span></label>
+              <button type="button" class="enlace" id="btnOlvide">¿Olvidaste tu contraseña?</button>
+            </div>
+
+            <div class="campo" id="filaTerminos" hidden>
+              <label class="check"><input type="checkbox" id="terminos"><span>Acepto los términos y la política de
+                  privacidad</span></label>
+              <small class="err" id="eTerminos"></small>
+            </div>
+
+            <button type="submit" id="btnEnviar" class="btn primario">
+              <span class="txt" id="txtEnviar">Entrar</span><span class="spin" aria-hidden="true"></span>
+            </button>
+          </form>
+          <p class="estado" id="estado" role="status" aria-live="polite" hidden></p>
+        </div>
+
+        <!-- Vista: recuperar contraseña -->
+        <div id="vistaRecuperar" hidden>
+          <button type="button" class="atras" id="btnAtras">← Volver</button>
+          <h2>Recupera tu acceso</h2>
+          <p class="sub">Escribe tu correo y te enviaremos un enlace para crear una contraseña nueva.</p>
+          <form id="formRec" novalidate>
+            <div class="campo">
+              <label for="correoRec">Correo</label>
+              <input id="correoRec" type="email" inputmode="email" autocomplete="email" autocapitalize="off"
+                spellcheck="false" placeholder="tucorreo@ejemplo.com">
+              <small class="err" id="eCorreoRec"></small>
+            </div>
+            <button type="submit" id="btnRec" class="btn primario">
+              <span class="txt">Enviar enlace</span><span class="spin" aria-hidden="true"></span>
+            </button>
+          </form>
+          <p class="estado" id="estadoRec" role="status" aria-live="polite" hidden></p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import {auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged} from "./js/firebase.js";
+    import {
+      createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile,
+      sendPasswordResetEmail, sendEmailVerification, setPersistence,
+      browserLocalPersistence, browserSessionPersistence, getAdditionalUserInfo
+    } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+
+    // Páginas de destino. Si renombraste inicio.html como index.html, cámbialo aquí.
+    const DESTINO = "index.html";
+    const PERFIL = "perfil.html";
+
+    const $ = (id) => document.getElementById(id);
+    let modo = "entrar";
+    let ocupado = false;
+    let fallos = 0, bloqueoHasta = 0;
+
+    // Si ya hay sesión, entra directo
+    onAuthStateChanged(auth, (user) => {if (user && !ocupado) location.replace(DESTINO);});
+
+    // ---------- Utilidades ----------
+    const ERRORES = {
+      "auth/invalid-credential": "Correo o contraseña incorrectos.",
+      "auth/wrong-password": "Correo o contraseña incorrectos.",
+      "auth/user-not-found": "Correo o contraseña incorrectos.",
+      "auth/invalid-email": "El correo no es válido.",
+      "auth/email-already-in-use": "Ya existe una cuenta con ese correo. Prueba iniciar sesión.",
+      "auth/weak-password": "La contraseña es demasiado débil.",
+      "auth/too-many-requests": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "auth/user-disabled": "Esta cuenta fue deshabilitada.",
+      "auth/popup-closed-by-user": "Cerraste la ventana de Google antes de terminar.",
+      "auth/cancelled-popup-request": "Se canceló el acceso con Google.",
+      "auth/popup-blocked": "Tu navegador bloqueó la ventana. Permite ventanas emergentes para este sitio.",
+      "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase (Authentication → Settings → Authorized domains).",
+      "auth/operation-not-allowed": "Ese método de acceso no está activado en Firebase.",
+      "auth/account-exists-with-different-credential": "Ese correo ya se registró con otro método de acceso.",
+      "auth/network-request-failed": "Sin conexión. Revisa tu internet."
+    };
+    const textoError = (e) => ERRORES[e && e.code] || ("Ocurrió un error inesperado" + (e && e.code ? " (" + e.code + ")" : "") + ".");
+
+    function setEstado(el, texto, tipo) {
+      el.hidden = !texto;
+      el.className = "estado " + (tipo || "");
+      el.textContent = texto || "";
+    }
+    function cargando(btn, si) {btn.disabled = si; btn.classList.toggle("cargando", si);}
+
+    const CAMPOS = {nombre: "eNombre", correo: "eCorreo", pass: "ePass", pass2: "ePass2", terminos: "eTerminos"};
+    function limpiarErrores() {
+      for (const id in CAMPOS) {
+        $(CAMPOS[id]).textContent = "";
+        $(id).removeAttribute("aria-invalid");
+      }
+    }
+    function campoError(id, texto) {
+      $(CAMPOS[id]).textContent = texto;
+      $(id).setAttribute("aria-invalid", "true");
+    }
+
+    const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+    const reglas = (p) => ({len: p.length >= 8, let: /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(p), num: /\d/.test(p)});
+
+    function bloqueado() {
+      const s = Math.ceil((bloqueoHasta - Date.now()) / 1000);
+      if (s > 0) {setEstado($("estado"), "Demasiados intentos fallidos. Espera " + s + " s.", "error"); return true;}
+      return false;
+    }
+    function registrarFallo(code) {
+      if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(code)) {
+        fallos++;
+        if (fallos >= 5) {bloqueoHasta = Date.now() + 30000; fallos = 0;}
+      }
+    }
+
+    async function fijarPersistencia() {
+      const recordar = modo === "crear" ? true : $("recordar").checked;
+      await setPersistence(auth, recordar ? browserLocalPersistence : browserSessionPersistence);
+    }
+
+    // ---------- Modo: entrar / crear ----------
+    function setModo(m, enfocar = true) {
+      modo = m;
+      const crear = m === "crear";
+      $("tabEntrar").setAttribute("aria-selected", String(!crear));
+      $("tabCrear").setAttribute("aria-selected", String(crear));
+      $("tabEntrar").tabIndex = crear ? -1 : 0;
+      $("tabCrear").tabIndex = crear ? 0 : -1;
+      $("cNombre").hidden = !crear;
+      $("cPass2").hidden = !crear;
+      $("fuerza").hidden = !crear;
+      $("reglas").hidden = !crear;
+      $("filaRecordar").hidden = crear;
+      $("filaTerminos").hidden = !crear;
+      $("titulo").textContent = crear ? "Crea tu cuenta" : "Bienvenido de vuelta";
+      $("subtitulo").textContent = crear ? "Un minuto y empiezas a buscar roomies compatibles." : "Inicia sesión para ver tus coincidencias.";
+      $("txtEnviar").textContent = crear ? "Crear mi cuenta" : "Entrar";
+      $("pass").autocomplete = crear ? "new-password" : "current-password";
+      $("pass").placeholder = crear ? "Mínimo 8 caracteres" : "Tu contraseña";
+      limpiarErrores();
+      setEstado($("estado"), "");
+      if (enfocar) (crear ? $("nombre") : $("correo")).focus();
+    }
+    $("tabEntrar").onclick = () => setModo("entrar");
+    $("tabCrear").onclick = () => setModo("crear");
+    [$("tabEntrar"), $("tabCrear")].forEach((t) => t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        const siguiente = modo === "entrar" ? "crear" : "entrar";
+        setModo(siguiente, false);
+        (siguiente === "crear" ? $("tabCrear") : $("tabEntrar")).focus();
+      }
+    }));
+
+    // ---------- Contraseña: mostrar, caps, fuerza, requisitos ----------
+    $("btnVer").onclick = () => {
+      const ver = $("pass").type === "password";
+      $("pass").type = ver ? "text" : "password";
+      $("pass2").type = ver ? "text" : "password";
+      $("btnVer").textContent = ver ? "Ocultar" : "Mostrar";
+      $("btnVer").setAttribute("aria-pressed", String(ver));
+      $("btnVer").setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
+    };
+
+    ["pass", "pass2"].forEach((id) => {
+      const aviso = (e) => {$("caps").hidden = !(e.getModifierState && e.getModifierState("CapsLock"));};
+      $(id).addEventListener("keydown", aviso);
+      $(id).addEventListener("keyup", aviso);
+      $(id).addEventListener("blur", () => {$("caps").hidden = true;});
+    });
+
+    $("pass").addEventListener("input", () => {
+      const p = $("pass").value;
+      const r = reglas(p);
+      document.querySelectorAll("#reglas li").forEach((li) => li.classList.toggle("ok", r[li.dataset.r]));
+      let pts = 0;
+      if (p.length >= 8) pts++;
+      if (p.length >= 12) pts++;
+      if (/[a-záéíóúñ]/.test(p) && /[A-ZÁÉÍÓÚÑ]/.test(p)) pts++;
+      if (/\d/.test(p)) pts++;
+      if (/[^A-Za-z0-9]/.test(p)) pts++;
+      const nivel = !p ? 0 : pts <= 1 ? 1 : pts === 2 ? 2 : pts === 3 ? 3 : 4;
+      document.querySelectorAll("#fuerza span").forEach((s, i) => s.classList.toggle("on", i < nivel));
+      $("fuerzaTxt").textContent = ["", "Débil", "Regular", "Buena", "Excelente"][nivel];
+      if ($("ePass").textContent) {$("ePass").textContent = ""; $("pass").removeAttribute("aria-invalid");}
+    });
+
+    // Limpia el error de un campo al escribir en él
+    ["nombre", "correo", "pass2"].forEach((id) => $(id).addEventListener("input", () => {
+      $(CAMPOS[id]).textContent = ""; $(id).removeAttribute("aria-invalid");
+    }));
+    $("terminos").addEventListener("change", () => {$("eTerminos").textContent = ""; $("terminos").removeAttribute("aria-invalid");});
+
+    // ---------- Validación ----------
+    function validar() {
+      limpiarErrores();
+      const v = {
+        nombre: $("nombre").value.trim(), correo: $("correo").value.trim(),
+        pass: $("pass").value, pass2: $("pass2").value
+      };
+      if (modo === "crear" && v.nombre.length < 2) campoError("nombre", "Escribe tu nombre.");
+      if (!v.correo) campoError("correo", "Escribe tu correo.");
+      else if (!emailOk(v.correo)) campoError("correo", "Revisa el formato del correo.");
+      if (!v.pass) campoError("pass", "Escribe tu contraseña.");
+      else if (modo === "crear") {
+        const r = reglas(v.pass);
+        if (!(r.len && r.let && r.num)) campoError("pass", "La contraseña no cumple los requisitos.");
+      }
+      if (modo === "crear") {
+        if (v.pass2 !== v.pass) campoError("pass2", "Las contraseñas no coinciden.");
+        if (!$("terminos").checked) campoError("terminos", "Debes aceptar para continuar.");
+      }
+      const primero = document.querySelector("#form [aria-invalid='true']");
+      if (primero) {primero.focus(); return null;}
+      return v;
+    }
+
+    // ---------- Enviar formulario ----------
+    $("form").onsubmit = async (ev) => {
+      ev.preventDefault();
+      setEstado($("estado"), "");
+      if (ocupado || bloqueado()) return;
+      const v = validar();
+      if (!v) return;
+
+      ocupado = true; cargando($("btnEnviar"), true);
+      try {
+        await fijarPersistencia();
+        if (modo === "crear") {
+          const cred = await createUserWithEmailAndPassword(auth, v.correo, v.pass);
+          await updateProfile(cred.user, {displayName: v.nombre});
+          try {await sendEmailVerification(cred.user);} catch (_) { }
+          location.replace(PERFIL);
+        } else {
+          await signInWithEmailAndPassword(auth, v.correo, v.pass);
+          try {
+            if ($("recordar").checked) localStorage.setItem("rm_correo", v.correo);
+            else localStorage.removeItem("rm_correo");
+          } catch (_) { }
+          location.replace(DESTINO);
+        }
+      } catch (e) {
+        ocupado = false; cargando($("btnEnviar"), false);
+        registrarFallo(e.code);
+        setEstado($("estado"), textoError(e), "error");
+      }
+    };
+
+    // ---------- Google ----------
+    $("btnGoogle").onclick = async () => {
+      if (ocupado) return;
+      setEstado($("estado"), "");
+      ocupado = true; cargando($("btnGoogle"), true);
+      try {
+        await fijarPersistencia();
+        const res = await signInWithPopup(auth, new GoogleAuthProvider());
+        const info = getAdditionalUserInfo(res);
+        location.replace(info && info.isNewUser ? PERFIL : DESTINO);
+      } catch (e) {
+        ocupado = false; cargando($("btnGoogle"), false);
+        setEstado($("estado"), textoError(e), "error");
+      }
+    };
+
+    // ---------- Recuperar contraseña ----------
+    function verRecuperar(si) {
+      $("vistaAuth").hidden = si;
+      $("vistaRecuperar").hidden = !si;
+      setEstado($("estadoRec"), "");
+      $("eCorreoRec").textContent = "";
+      if (si) {$("correoRec").value = $("correo").value.trim(); $("correoRec").focus();}
+      else $("correo").focus();
+    }
+    $("btnOlvide").onclick = () => verRecuperar(true);
+    $("btnAtras").onclick = () => verRecuperar(false);
+
+    $("formRec").onsubmit = async (ev) => {
+      ev.preventDefault();
+      const correo = $("correoRec").value.trim();
+      $("eCorreoRec").textContent = "";
+      setEstado($("estadoRec"), "");
+      if (!emailOk(correo)) {
+        $("eCorreoRec").textContent = correo ? "Revisa el formato del correo." : "Escribe tu correo.";
+        $("correoRec").focus();
+        return;
+      }
+      cargando($("btnRec"), true);
+      try {
+        await sendPasswordResetEmail(auth, correo);
+        setEstado($("estadoRec"), "Si ese correo tiene una cuenta, te enviamos un enlace. Revisa también la carpeta de spam.", "ok");
+      } catch (e) {
+        setEstado($("estadoRec"), textoError(e), "error");
+      }
+      cargando($("btnRec"), false);
+    };
+
+    // ---------- Conexión ----------
+    window.addEventListener("offline", () => setEstado($("estado"), "Sin conexión a internet.", "error"));
+    window.addEventListener("online", () => setEstado($("estado"), ""));
+
+    // ---------- Arranque ----------
+    try {const c = localStorage.getItem("rm_correo"); if (c) $("correo").value = c;} catch (_) { }
+    if (new URLSearchParams(location.search).get("modo") === "crear") setModo("crear", false);
+  </script>
+</body>
+
+</html>
