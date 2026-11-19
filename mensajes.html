@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Mensajes · RoomieMatch</title>
+        <link rel="stylesheet" href="css/style.css">
+        </head>
+        <body>
+        <div id="app" class="app" hidden>
+          <aside class="sidebar" id="sidebar"></aside>
+            <main class="main">
+                <h2>Mensajes</h2>
+                    <div class="chat-layout">
+                          <div id="convs" class="convs"></div>
+                                <section class="chat">
+                                        <div id="titulo" class="chat-titulo">Selecciona una conversación</div>
+                                                <div id="msgs" class="msgs"></div>
+                                                        <div class="chat-form">
+                                                                  <input id="txt" placeholder="Escribe un mensaje...">
+                                                                            <button id="enviar" class="btn">Enviar</button>
+                                                                                    </div>
+                                                                                          </section>
+                                                                                              </div>
+                                                                                                </main>
+                                                                                                </div>
+                                                                                                <script type="module">
+                                                                                                  import { escucharConversaciones, escucharMensajes, enviarMensaje } from "./js/datos.js";
+                                                                                                    import { esc } from "./js/tarjetas.js";
+                                                                                                      import { protegerPagina } from "./js/shell.js";
+
+                                                                                                        const $ = (id) => document.getElementById(id);
+
+                                                                                                          protegerPagina("mensajes.html", (user) => {
+                                                                                                              let cid = new URLSearchParams(location.search).get("c");
+                                                                                                                  let convs = [], stop = null, abiertaInicial = false;
+
+                                                                                                                      escucharConversaciones(user.uid, (lista) => {
+                                                                                                                            convs = lista;
+                                                                                                                                  pintarLista();
+                                                                                                                                        if (cid && !abiertaInicial && convs.find(c => c.id === cid)) { abiertaInicial = true; abrir(cid); }
+                                                                                                                                            });
+
+                                                                                                                                                function nombreDe(c) {
+                                                                                                                                                      const otro = c.participantes.find(p => p !== user.uid);
+                                                                                                                                                            return (c.datos && c.datos[otro] && c.datos[otro].nombre) || "Usuario";
+                                                                                                                                                                }
+
+                                                                                                                                                                    function pintarLista() {
+                                                                                                                                                                          $("convs").innerHTML = convs.length ? convs.map(c => `
+                                                                                                                                                                                  <button class="conv ${c.id === cid ? "activa" : ""}" data-id="${esc(c.id)}">
+                                                                                                                                                                                            <strong>${esc(nombreDe(c))}</strong>
+                                                                                                                                                                                                      <span>${esc(c.ultimoMensaje || "Sin mensajes aún")}</span>
+                                                                                                                                                                                                              </button>`).join("") : '<p class="lema">Aún no tienes conversaciones. Escribe a alguien desde Buscar roomies.</p>';
+                                                                                                                                                                                                                    document.querySelectorAll(".conv").forEach(b => b.onclick = () => abrir(b.dataset.id));
+                                                                                                                                                                                                                        }
+
+                                                                                                                                                                                                                            function abrir(id) {
+                                                                                                                                                                                                                                  cid = id;
+                                                                                                                                                                                                                                        if (stop) stop();
+                                                                                                                                                                                                                                              const c = convs.find(x => x.id === id);
+                                                                                                                                                                                                                                                    $("titulo").textContent = c ? nombreDe(c) : "Conversación";
+                                                                                                                                                                                                                                                          stop = escucharMensajes(id, (msgs) => {
+                                                                                                                                                                                                                                                                  $("msgs").innerHTML = msgs.map(m =>
+                                                                                                                                                                                                                                                                            `<div class="msg ${m.de === user.uid ? "mio" : "suyo"}">${esc(m.texto)}</div>`).join("");
+                                                                                                                                                                                                                                                                                    $("msgs").scrollTop = 1e9;
+                                                                                                                                                                                                                                                                                          });
+                                                                                                                                                                                                                                                                                                pintarLista();
+                                                                                                                                                                                                                                                                                                    }
+
+                                                                                                                                                                                                                                                                                                        async function enviar() {
+                                                                                                                                                                                                                                                                                                              const t = $("txt").value.trim();
+                                                                                                                                                                                                                                                                                                                    if (!t || !cid) return;
+                                                                                                                                                                                                                                                                                                                          $("txt").value = "";
+                                                                                                                                                                                                                                                                                                                                await enviarMensaje(cid, user.uid, t);
+                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                        $("enviar").onclick = enviar;
+                                                                                                                                                                                                                                                                                                                                            $("txt").onkeydown = (e) => { if (e.key === "Enter") enviar(); };
+                                                                                                                                                                                                                                                                                                                                              });
+                                                                                                                                                                                                                                                                                                                                              </script>
+                                                                                                                                                                                                                                                                                                                                              </body>
+                                                                                                                                                                                                                                                                                                                                              </html>

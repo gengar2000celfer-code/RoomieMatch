@@ -2,78 +2,58 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RoomieMatch</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<section id="login" class="login" hidden>
-  <div class="login-caja">
-    <div class="logo">RoomieMatch</div>
-    <p class="lema">Más que una habitación, es la persona correcta.</p>
-    <button id="btnGoogle" class="btn">Continuar con Google</button>
-    <p id="loginError" class="lema"></p>
-  </div>
-</section>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>RoomieMatch</title>
+        <link rel="stylesheet" href="css/style.css">
+        </head>
+        <body>
+        <div id="app" class="app" hidden>
+          <aside class="sidebar" id="sidebar"></aside>
+            <main class="main">
+                <div class="encabezado">
+                      <div>
+                              <h2>Resultados de compatibilidad</h2>
+                                      <p class="lema">Estos son los perfiles que mejor se adaptan a lo que buscas.</p>
+                                            </div>
+                                                  <div class="usuario">
+                                                          <img id="userFoto" class="avatar chico" alt="" hidden>
+                                                                  <span id="userNombre"></span>
+                                                                        </div>
+                                                                            </div>
+                                                                                <p id="aviso" class="aviso" hidden>Completa tu perfil para ver tu compatibilidad real. <a href="perfil.html">Ir a Mi perfil</a></p>
+                                                                                    <input id="buscador" class="buscador" type="search" placeholder="Buscar por nombre...">
+                                                                                        <div id="lista" class="grid"></div>
+                                                                                          </main>
+                                                                                          </div>
 
-<div id="app" class="app" hidden>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main">
-    <div class="encabezado">
-      <div>
-        <h2>Resultados de compatibilidad</h2>
-        <p class="lema">Estos son los perfiles que mejor se adaptan a lo que buscas.</p>
-      </div>
-      <div class="usuario">
-        <img id="userFoto" class="avatar chico" alt="">
-        <span id="userNombre"></span>
-      </div>
-    </div>
-    <p id="aviso" class="aviso" hidden>Completa tu perfil para ver tu compatibilidad real. <a href="perfil.html">Ir a Mi perfil</a></p>
-    <input id="buscador" class="buscador" type="search" placeholder="Buscar por nombre...">
-    <div id="lista" class="grid"></div>
-  </main>
-</div>
+                                                                                          <script type="module">
+                                                                                            import { PERFIL_DEMO } from "./js/compat.js";
+                                                                                              import { cargarCandidatos, cargarFavoritos, conPorcentaje } from "./js/datos.js";
+                                                                                                import { pintarTarjetas, crearAcciones } from "./js/tarjetas.js";
+                                                                                                  import { protegerPagina } from "./js/shell.js";
 
-<script type="module">
-  import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "./js/firebase.js";
-  import { PERFIL_DEMO } from "./js/compat.js";
-  import { cargarPerfil, cargarCandidatos, cargarFavoritos, conPorcentaje } from "./js/datos.js";
-  import { pintarTarjetas, crearAcciones } from "./js/tarjetas.js";
-  import { menuHTML } from "./js/shell.js";
+                                                                                                    const $ = (id) => document.getElementById(id);
+                                                                                                      let todos = [], favs = new Set(), yo = PERFIL_DEMO, acc;
 
-  const $ = (id) => document.getElementById(id);
-  let todos = [], favs = new Set(), yo = PERFIL_DEMO, acc;
+                                                                                                        protegerPagina("index.html", async (user, perfil) => {
+                                                                                                            $("userNombre").textContent = user.displayName || user.email || "";
+                                                                                                                if (user.photoURL) { $("userFoto").src = user.photoURL; $("userFoto").hidden = false; }
 
-  $("btnGoogle").onclick = async () => {
-    try { await signInWithPopup(auth, new GoogleAuthProvider()); }
-    catch (e) { $("loginError").textContent = "No se pudo iniciar sesión: " + e.code; }
-  };
+                                                                                                                    const completo = !!(perfil && perfil.perfilCompleto);
+                                                                                                                        $("aviso").hidden = completo;
+                                                                                                                            yo = completo ? perfil : PERFIL_DEMO;
+                                                                                                                                todos = await cargarCandidatos(user.uid);
+                                                                                                                                    favs = new Set(await cargarFavoritos(user.uid));
+                                                                                                                                        acc = crearAcciones(user, favs, () => todos, pintar);
+                                                                                                                                            pintar();
+                                                                                                                                              });
 
-  onAuthStateChanged(auth, async (user) => {
-    $("login").hidden = !!user;
-    $("app").hidden = !user;
-    if (!user) return;
-    $("sidebar").innerHTML = menuHTML("index.html");
-    $("userNombre").textContent = user.displayName || "";
-    if (user.photoURL) $("userFoto").src = user.photoURL;
-
-    const perfil = await cargarPerfil(user.uid);
-    const completo = !!(perfil && perfil.perfilCompleto);
-    $("aviso").hidden = completo;
-    yo = completo ? perfil : PERFIL_DEMO;
-    todos = await cargarCandidatos(user.uid);
-    favs = new Set(await cargarFavoritos(user.uid));
-    acc = crearAcciones(user, favs, () => todos, pintar);
-    pintar();
-  });
-
-  function pintar() {
-    const t = $("buscador").value.trim().toLowerCase();
-    const lista = conPorcentaje(yo, todos.filter(r => (r.nombre || "").toLowerCase().includes(t)));
-    pintarTarjetas($("lista"), lista, favs, acc);
-  }
-  $("buscador").oninput = pintar;
-</script>
-</body>
-</html>
+                                                                                                                                                function pintar() {
+                                                                                                                                                    const t = $("buscador").value.trim().toLowerCase();
+                                                                                                                                                        const lista = conPorcentaje(yo, todos.filter(r => (r.nombre || "").toLowerCase().includes(t)));
+                                                                                                                                                            pintarTarjetas($("lista"), lista, favs, acc);
+                                                                                                                                                              }
+                                                                                                                                                                $("buscador").oninput = pintar;
+                                                                                                                                                                </script>
+                                                                                                                                                                </body>
+                                                                                                                                                                </html>

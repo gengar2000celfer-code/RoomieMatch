@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Buscar roomies · RoomieMatch</title>
+        <link rel="stylesheet" href="css/style.css">
+        </head>
+        <body>
+        <div id="app" class="app" hidden>
+          <aside class="sidebar" id="sidebar"></aside>
+            <main class="main">
+                <h2>Buscar roomies</h2>
+                    <input id="buscador" class="buscador" type="search" placeholder="Buscar por nombre, intereses o zona...">
+                        <div class="filtros">
+                              <select id="fMascotas"><option value="">Mascotas: todas</option><option value="ninguna">Sin mascotas</option><option value="gato">Gato</option><option value="perro">Perro</option></select>
+                                    <select id="fRuido"><option value="">Ruido: todos</option><option value="tranquilo">Tranquilo</option><option value="moderado">Moderado</option><option value="ruidoso">Ruidoso</option></select>
+                                          <select id="fFuma"><option value="">Fumar: todos</option><option value="false">No fuma</option><option value="true">Fuma</option></select>
+                                                <input id="fPresupuesto" type="number" min="0" placeholder="Presupuesto máx. $">
+                                                    </div>
+                                                        <div id="lista" class="grid"></div>
+                                                          </main>
+                                                          </div>
+                                                          <script type="module">
+                                                            import { PERFIL_DEMO } from "./js/compat.js";
+                                                              import { cargarCandidatos, cargarFavoritos, conPorcentaje } from "./js/datos.js";
+                                                                import { pintarTarjetas, crearAcciones } from "./js/tarjetas.js";
+                                                                  import { protegerPagina } from "./js/shell.js";
+
+                                                                    const $ = (id) => document.getElementById(id);
+                                                                      let todos = [], favs = new Set(), yo = PERFIL_DEMO, acc;
+
+                                                                        protegerPagina("buscar.html", async (user, perfil) => {
+                                                                            yo = perfil && perfil.perfilCompleto ? perfil : PERFIL_DEMO;
+                                                                                todos = await cargarCandidatos(user.uid);
+                                                                                    favs = new Set(await cargarFavoritos(user.uid));
+                                                                                        acc = crearAcciones(user, favs, () => todos, pintar);
+                                                                                            ["buscador", "fMascotas", "fRuido", "fFuma", "fPresupuesto"].forEach(id => $(id).oninput = pintar);
+                                                                                                pintar();
+                                                                                                  });
+
+                                                                                                    function pintar() {
+                                                                                                        const t = $("buscador").value.trim().toLowerCase();
+                                                                                                            const m = $("fMascotas").value, ru = $("fRuido").value, fu = $("fFuma").value;
+                                                                                                                const pr = Number($("fPresupuesto").value) || 0;
+                                                                                                                    const filtrada = todos.filter(r =>
+                                                                                                                          (!t || ((r.nombre || "") + " " + (r.bio || "") + " " + (r.intereses || "") + " " + (r.zona || "")).toLowerCase().includes(t)) &&
+                                                                                                                                (!m || r.mascotas === m) && (!ru || r.ruido === ru) &&
+                                                                                                                                      (!fu || String(r.fuma) === fu) && (!pr || r.presupuestoMin <= pr));
+                                                                                                                                          pintarTarjetas($("lista"), conPorcentaje(yo, filtrada), favs, acc);
+                                                                                                                                            }
+                                                                                                                                            </script>
+                                                                                                                                            </body>
+                                                                                                                                            </html>

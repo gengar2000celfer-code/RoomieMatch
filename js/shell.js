@@ -17,7 +17,7 @@ const ITEMS = [["index.html","Inicio"],["perfil.html","Mi perfil"],["buscar.html
 
                           export function protegerPagina(activo, cb) {
                             onAuthStateChanged(auth, async (user) => {
-                                if (!user) { location.href = "index.html"; return; }
+                              if (!user) { location.href = "login.html"; return; }
                                     document.getElementById("sidebar").innerHTML = menuHTML(activo);
                                         document.getElementById("app").hidden = false;
                                             cb(user, await cargarPerfil(user.uid));

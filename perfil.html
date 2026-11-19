@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Mi perfil · RoomieMatch</title>
+        <link rel="stylesheet" href="css/style.css">
+        </head>
+        <body>
+        <div id="app" class="app" hidden>
+          <aside class="sidebar" id="sidebar"></aside>
+            <main class="main">
+                <h2>Mi perfil</h2>
+                    <div class="usuario"><img id="foto" class="avatar" alt=""><p class="lema">Tu foto viene de tu cuenta de Google.</p></div>
+
+                        <div class="form">
+                              <label>Nombre<input id="nombre"></label>
+                                    <label>Edad<input id="edad" type="number" min="16"></label>
+                                          <label>Ocupación<input id="ocupacion" placeholder="Estudiante"></label>
+                                                <label>Universidad<input id="universidad" placeholder="UTTecámac"></label>
+                                                      <label class="ancho">Sobre mí<textarea id="bio"></textarea></label>
+                                                            <label class="ancho">Intereses<input id="intereses" placeholder="Música, cocina, animales"></label>
+                                                                </div>
+
+                                                                    <h3>Preferencias de vivienda</h3>
+                                                                        <div class="form">
+                                                                              <label>Presupuesto mínimo ($)<input id="presupuestoMin" type="number" min="0"></label>
+                                                                                    <label>Presupuesto máximo ($)<input id="presupuestoMax" type="number" min="0"></label>
+                                                                                          <label>Zona o ubicación<input id="zona" placeholder="Ej. Tecámac centro"></label>
+                                                                                                <label>Mascotas<select id="mascotas"><option value="ninguna">Sin mascotas</option><option value="gato">Gato</option><option value="perro">Perro</option></select></label>
+                                                                                                      <label>Ruido<select id="ruido"><option value="tranquilo">Tranquilo</option><option value="moderado">Moderado</option><option value="ruidoso">Ruidoso</option></select></label>
+                                                                                                            <label>Limpieza<select id="limpieza"><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option></select></label>
+                                                                                                                  <label>Visitas<select id="visitas"><option value="pocas">Pocas</option><option value="algunas">Algunas</option><option value="muchas">Muchas</option></select></label>
+                                                                                                                        <label>Horario<select id="horario"><option value="diurno">Diurno</option><option value="nocturno">Nocturno</option><option value="flexible">Flexible</option></select></label>
+                                                                                                                              <label>¿Fumas?<select id="fuma"><option value="false">No</option><option value="true">Sí</option></select></label>
+                                                                                                                                  </div>
+
+                                                                                                                                      <button id="guardar" class="btn">Guardar perfil</button>
+                                                                                                                                          <p id="msg" class="lema"></p>
+                                                                                                                                            </main>
+                                                                                                                                            </div>
+                                                                                                                                            <script type="module">
+                                                                                                                                              import { guardarPerfil } from "./js/datos.js";
+                                                                                                                                                import { protegerPagina } from "./js/shell.js";
+
+                                                                                                                                                  const $ = (id) => document.getElementById(id);
+                                                                                                                                                    const CAMPOS = ["nombre","edad","ocupacion","universidad","bio","intereses","presupuestoMin","presupuestoMax","zona","mascotas","ruido","limpieza","visitas","horario","fuma"];
+
+                                                                                                                                                      protegerPagina("perfil.html", (user, perfil) => {
+                                                                                                                                                          if (user.photoURL) $("foto").src = user.photoURL;
+                                                                                                                                                              const p = perfil || { nombre: user.displayName || "", ocupacion: "Estudiante" };
+                                                                                                                                                                  CAMPOS.forEach(c => { if (p[c] !== undefined) $(c).value = String(p[c]); });
+
+                                                                                                                                                                      $("guardar").onclick = async () => {
+                                                                                                                                                                            const d = {};
+                                                                                                                                                                                  CAMPOS.forEach(c => d[c] = $(c).value.trim());
+                                                                                                                                                                                        d.edad = Number(d.edad); d.presupuestoMin = Number(d.presupuestoMin);
+                                                                                                                                                                                              d.presupuestoMax = Number(d.presupuestoMax); d.fuma = d.fuma === "true";
+                                                                                                                                                                                                    if (!d.nombre || !d.edad || !d.presupuestoMax || d.presupuestoMin > d.presupuestoMax) {
+                                                                                                                                                                                                            $("msg").textContent = "Revisa nombre, edad y que el presupuesto mínimo no sea mayor al máximo.";
+                                                                                                                                                                                                                    return;
+                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                                d.foto = user.photoURL || "";
+                                                                                                                                                                                                                                      d.perfilCompleto = true;
+                                                                                                                                                                                                                                            try { await guardarPerfil(user.uid, d); $("msg").textContent = "Perfil guardado ✓"; }
+                                                                                                                                                                                                                                                  catch (e) { $("msg").textContent = "No se pudo guardar: " + e.code; }
+                                                                                                                                                                                                                                                      };
+                                                                                                                                                                                                                                                        });
+                                                                                                                                                                                                                                                        </script>
+                                                                                                                                                                                                                                                        </body>
+                                                                                                                                                                                                                                                        </html>
