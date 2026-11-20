@@ -2,58 +2,702 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>RoomieMatch</title>
-        <link rel="stylesheet" href="css/style.css">
-        </head>
-        <body>
-        <div id="app" class="app" hidden>
-          <aside class="sidebar" id="sidebar"></aside>
-            <main class="main">
-                <div class="encabezado">
-                      <div>
-                              <h2>Resultados de compatibilidad</h2>
-                                      <p class="lema">Estos son los perfiles que mejor se adaptan a lo que buscas.</p>
-                                            </div>
-                                                  <div class="usuario">
-                                                          <img id="userFoto" class="avatar chico" alt="" hidden>
-                                                                  <span id="userNombre"></span>
-                                                                        </div>
-                                                                            </div>
-                                                                                <p id="aviso" class="aviso" hidden>Completa tu perfil para ver tu compatibilidad real. <a href="perfil.html">Ir a Mi perfil</a></p>
-                                                                                    <input id="buscador" class="buscador" type="search" placeholder="Buscar por nombre...">
-                                                                                        <div id="lista" class="grid"></div>
-                                                                                          </main>
-                                                                                          </div>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4E8F5B">
+  <title>Inicio · RoomieMatch</title>
+  <link rel="stylesheet" href="css/inicio.css">
+</head>
+<body>
 
-                                                                                          <script type="module">
-                                                                                            import { PERFIL_DEMO } from "./js/compat.js";
-                                                                                              import { cargarCandidatos, cargarFavoritos, conPorcentaje } from "./js/datos.js";
-                                                                                                import { pintarTarjetas, crearAcciones } from "./js/tarjetas.js";
-                                                                                                  import { protegerPagina } from "./js/shell.js";
+<!-- Iconos -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 48 48">
+    <path d="M6 22 24 6l18 16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10 21v19h28V21" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="18" cy="27" r="3.5" fill="currentColor"/><circle cx="30" cy="27" r="3.5" fill="currentColor"/>
+    <path d="M11.5 39c0-4 3-7 6.5-7s6.5 3 6.5 7z" fill="currentColor"/><path d="M23.5 39c0-4 3-7 6.5-7s6.5 3 6.5 7z" fill="currentColor"/>
+    <path d="M34 10c4 0 7 3 7 7-4 0-7-3-7-7z" fill="#A7C957"/>
+  </symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.2-1.7 2.5-1.7s2.5.7 2.5 1.7-1.2 1.5-2.5 1.8-2.5.8-2.5 1.8 1.2 1.7 2.5 1.7 2.5-.7 2.5-1.7"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="10" r="1.8"/><circle cx="12" cy="7" r="1.8"/><circle cx="17" cy="10" r="1.8"/><path d="M12 12c-3 0-5 3-5 5 0 2 2 2 5 1 3 1 5 1 5-1 0-2-2-5-5-5z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M10 12h6M10 16h6"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+</svg>
 
-                                                                                                    const $ = (id) => document.getElementById(id);
-                                                                                                      let todos = [], favs = new Set(), yo = PERFIL_DEMO, acc;
+<div id="cargaInicial" class="carga-inicial" role="status" aria-label="Cargando"><div class="spinner"></div></div>
 
-                                                                                                        protegerPagina("index.html", async (user, perfil) => {
-                                                                                                            $("userNombre").textContent = user.displayName || user.email || "";
-                                                                                                                if (user.photoURL) { $("userFoto").src = user.photoURL; $("userFoto").hidden = false; }
+<div id="app" class="app" hidden>
 
-                                                                                                                    const completo = !!(perfil && perfil.perfilCompleto);
-                                                                                                                        $("aviso").hidden = completo;
-                                                                                                                            yo = completo ? perfil : PERFIL_DEMO;
-                                                                                                                                todos = await cargarCandidatos(user.uid);
-                                                                                                                                    favs = new Set(await cargarFavoritos(user.uid));
-                                                                                                                                        acc = crearAcciones(user, favs, () => todos, pintar);
-                                                                                                                                            pintar();
-                                                                                                                                              });
+  <!-- Cabecera -->
+  <header class="top panel">
+    <button id="btnMenu" class="icono menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="lateral">
+      <svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+    <a class="marca" href="index.html" aria-label="RoomieMatch, inicio">
+      <svg aria-hidden="true"><use href="#logo"/></svg>
+      <span><b>RoomieMatch</b><small>Más que una habitación, es la persona correcta.</small></span>
+    </a>
+    <form class="buscar" id="formBuscar" role="search">
+      <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="q" type="search" placeholder="Buscar compañeros por nombre, interés o zona..." aria-label="Buscar compañeros" autocomplete="off">
+    </form>
+    <div class="acciones">
+      <div class="menu-pop">
+        <button id="btnCampana" class="icono" type="button" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false">
+          <svg class="i" aria-hidden="true"><use href="#i-bell"/></svg>
+          <span id="campanaBadge" class="punto" hidden></span>
+        </button>
+        <div id="panelNotif" class="pop pop-notif" hidden></div>
+      </div>
+      <div class="menu-pop">
+        <button id="btnUsuario" class="usuario-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <span id="avatarTop"></span>
+          <span id="nombreTop" class="nombre-top"></span>
+          <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </button>
+        <div id="panelUsuario" class="pop pop-user" hidden>
+          <a href="perfil.html"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>Mi perfil</a>
+          <a href="config.html"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Configuración</a>
+          <button type="button" data-act="salir"><svg class="i" aria-hidden="true"><use href="#i-logout"/></svg>Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
 
-                                                                                                                                                function pintar() {
-                                                                                                                                                    const t = $("buscador").value.trim().toLowerCase();
-                                                                                                                                                        const lista = conPorcentaje(yo, todos.filter(r => (r.nombre || "").toLowerCase().includes(t)));
-                                                                                                                                                            pintarTarjetas($("lista"), lista, favs, acc);
-                                                                                                                                                              }
-                                                                                                                                                                $("buscador").oninput = pintar;
-                                                                                                                                                                </script>
-                                                                                                                                                                </body>
-                                                                                                                                                                </html>
+  <div class="velo" id="velo" hidden></div>
+  <div class="velo-pop" id="veloPop"></div>
+
+  <!-- Menú lateral -->
+  <aside id="lateral" class="lateral panel" aria-label="Menú principal">
+    <button id="btnCerrarMenu" class="icono cerrar-menu" type="button" aria-label="Cerrar menú">
+      <svg class="i" aria-hidden="true"><use href="#i-close"/></svg>
+    </button>
+    <nav class="nav" aria-label="Principal">
+      <a href="index.html" class="activo" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+      <a href="perfil.html"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>Mi perfil</a>
+      <a href="buscar.html"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg>Buscar roomies</a>
+      <a href="favoritos.html"><svg class="i" aria-hidden="true"><use href="#i-heart"/></svg>Mis favoritos</a>
+      <a href="mensajes.html"><svg class="i" aria-hidden="true"><use href="#i-chat"/></svg>Mensajes<span id="navBadgeMsg" class="num" hidden></span></a>
+      <a href="config.html"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Configuración</a>
+      <span class="nav-sep"></span>
+      <span class="pronto"><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg>Calendario<em>Pronto</em></span>
+      <span class="pronto"><svg class="i" aria-hidden="true"><use href="#i-coin"/></svg>Gastos<em>Pronto</em></span>
+      <span class="pronto"><svg class="i" aria-hidden="true"><use href="#i-doc"/></svg>Reglas de vivienda<em>Pronto</em></span>
+      <span class="pronto"><svg class="i" aria-hidden="true"><use href="#i-bot"/></svg>RoomieBot<em>Pronto</em></span>
+    </nav>
+    <div class="deco" aria-hidden="true">
+      <svg><use href="#logo"/></svg>
+      <p>Tu espacio, tus reglas, tus personas correctas.</p>
+    </div>
+  </aside>
+
+  <!-- Centro -->
+  <main class="centro" id="contenido">
+    <div class="cab">
+      <h1>Resultados de compatibilidad</h1>
+      <p class="sub">Aquí están los perfiles que mejor se adaptan a lo que buscas.</p>
+    </div>
+
+    <div id="banner" class="banner" hidden>
+      <p>Completa tu perfil para ver tu compatibilidad real. Mientras tanto, los porcentajes son estimados.</p>
+      <a class="btn chico" href="perfil.html">Completar mi perfil</a>
+    </div>
+
+    <div class="filtros" id="filtros">
+      <div class="fw">
+        <button class="fchip" type="button" data-pop="pUbic" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Ubicación<span class="cnt" hidden></span><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <div class="pop fpanel" id="pUbic" hidden>
+          <label>Zona o colonia<input id="fZona" placeholder="Ej. Tecámac centro" autocomplete="off"></label>
+          <label>Distancia máxima
+            <select id="fDist"><option value="">Cualquiera</option><option value="3">Hasta 3 km</option><option value="5">Hasta 5 km</option><option value="10">Hasta 10 km</option></select>
+          </label>
+          <button class="mini" type="button" id="usarZona">Usar mi zona</button>
+          <button class="btn listo" type="button">Listo</button>
+        </div>
+      </div>
+      <div class="fw">
+        <button class="fchip" type="button" data-pop="pPres" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-coin"/></svg>Presupuesto<span class="cnt" hidden></span><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <div class="pop fpanel" id="pPres" hidden>
+          <label>Presupuesto máximo ($)<input id="fPres" type="number" min="0" step="500" inputmode="numeric" placeholder="Ej. 4500"></label>
+          <button class="mini" type="button" id="usarPres">Usar mi presupuesto</button>
+          <button class="btn listo" type="button">Listo</button>
+        </div>
+      </div>
+      <div class="fw">
+        <button class="fchip" type="button" data-pop="pMasc" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-paw"/></svg>Mascotas<span class="cnt" hidden></span><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <div class="pop fpanel" id="pMasc" hidden>
+          <label>Mascotas
+            <select id="fMasc"><option value="">Todas</option><option value="ninguna">Sin mascotas</option><option value="con">Con mascotas</option><option value="gato">Gato</option><option value="perro">Perro</option></select>
+          </label>
+          <button class="btn listo" type="button">Listo</button>
+        </div>
+      </div>
+      <div class="fw">
+        <button class="fchip" type="button" data-pop="pMas" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-filter"/></svg>Más filtros<span class="cnt" hidden></span><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <div class="pop fpanel ancho" id="pMas" hidden>
+          <div class="g2">
+            <label>Ruido<select id="fRuido"><option value="">Todos</option><option value="tranquilo">Tranquilo</option><option value="moderado">Moderado</option><option value="ruidoso">Ruidoso</option></select></label>
+            <label>Limpieza<select id="fLimp"><option value="">Todas</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></label>
+            <label>Horario<select id="fHor"><option value="">Todos</option><option value="diurno">Diurno</option><option value="nocturno">Nocturno</option><option value="flexible">Flexible</option></select></label>
+            <label>Visitas<select id="fVis"><option value="">Todas</option><option value="pocas">Pocas</option><option value="algunas">Algunas</option><option value="muchas">Muchas</option></select></label>
+          </div>
+          <label>Fumar<select id="fFuma"><option value="">Da igual</option><option value="false">No fuma</option><option value="true">Fuma</option></select></label>
+          <label>Compatibilidad mínima: <output id="fMinOut">0%</output><input id="fMin" type="range" min="0" max="100" step="5" value="0"></label>
+          <label class="check"><input id="fLinea" type="checkbox">Solo perfiles en línea</label>
+          <label class="check"><input id="fFavs" type="checkbox">Solo mis favoritos</label>
+          <button class="btn listo" type="button">Listo</button>
+        </div>
+      </div>
+      <button id="btnLimpiar" class="enlace" type="button" hidden>Limpiar filtros</button>
+    </div>
+
+    <div class="meta-fila">
+      <strong id="conteo" aria-live="polite"></strong>
+      <label class="ord">Ordenar por
+        <select id="orden">
+          <option value="compat">Mayor compatibilidad</option>
+          <option value="cerca">Más cerca</option>
+          <option value="barato">Menor presupuesto</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="lista" class="lista" aria-live="polite"></div>
+  </main>
+
+  <!-- Columna derecha -->
+  <aside class="derecha" aria-label="Resumen">
+    <section class="panel" id="compat"></section>
+    <section class="panel perfil-card" id="miPerfil"></section>
+    <section class="panel bot">
+      <svg class="i grande" aria-hidden="true"><use href="#i-bot"/></svg>
+      <h2>RoomieBot</h2>
+      <p>Muy pronto podrás buscar roomies y resolver tus dudas desde el chat.</p>
+      <button class="btn suave" type="button" disabled>Próximamente</button>
+    </section>
+    <section class="panel frase"><p>La mejor convivencia empieza con una buena coincidencia.</p></section>
+  </aside>
+</div>
+
+<dialog id="dlg" class="dlg" aria-labelledby="dlgTitulo"></dialog>
+<div id="toast" class="toast" popover="manual" role="status" aria-live="polite" hidden></div>
+
+<script type="module">
+  import { auth, onAuthStateChanged, signOut } from "./js/firebase.js";
+  import { calcularCompatibilidad, PERFIL_DEMO, PESOS } from "./js/compat.js";
+  import { cargarPerfil, cargarCuenta, cargarCandidatos, cargarFavoritos, alternarFavorito,
+           abrirConversacion, escucharConversaciones, guardarPreferenciasInicio,
+           marcarActividad, marcarNotifVistas } from "./js/datos.js";
+
+  /* ---------- Configuración ---------- */
+  const LOGIN = "login.html";
+  const PAGINA = 8;                 // perfiles por tanda
+  const MOSTRAR_EJEMPLOS = true;    // false = solo usuarios reales
+  const LINEA_MS = 5 * 60 * 1000;   // "en línea" = actividad en los últimos 5 min
+
+  /* ---------- Utilidades ---------- */
+  const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = (t) => String(t ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const ms = (ts) => (ts && ts.seconds ? ts.seconds * 1000 : 0);
+  const dinero = (n) => "$" + Number(n || 0).toLocaleString("es-MX");
+  const cap = (t) => (t ? String(t)[0].toUpperCase() + String(t).slice(1) : "");
+  const ico = (n) => `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+  const DEF = { q: "", zona: "", dist: "", presMax: "", mascotas: "", ruido: "", limpieza: "", horario: "", visitas: "", fuma: "", minCompat: 0, soloLinea: false, soloFavs: false };
+  const S = { user: null, perfil: null, cuenta: null, completo: false, yo: PERFIL_DEMO, todos: [], puntuados: [],
+              favs: new Set(), filtros: { ...DEF }, orden: "compat", pagina: 1, convs: [], notifVistas: 0, ultimaRecarga: 0 };
+
+  const MASC = { ninguna: "Sin mascotas", gato: "1 gato", perro: "1 perro" };
+  const LABEL = { presupuesto: "Presupuesto", ubicacion: "Ubicación", ruido: "Ruido", horario: "Horario", limpieza: "Limpieza", mascotas: "Mascotas", visitas: "Visitas", fumar: "Fumar" };
+  const mascotaTxt = (v) => MASC[v] || cap(v) || "—";
+  const enLinea = (r) => Date.now() - ms(r.ultimaActividad) < LINEA_MS;
+  const nombreUsuario = () => (S.perfil && S.perfil.nombre) || S.user.displayName || (S.user.email || "").split("@")[0] || "Usuario";
+  const fotoUsuario = () => (S.perfil && S.perfil.foto) || S.user.photoURL || "";
+
+  const ORDEN = {
+    compat: (a, b) => b.pct - a.pct,
+    cerca: (a, b) => (a.distanciaKm ?? 1e9) - (b.distanciaKm ?? 1e9) || b.pct - a.pct,
+    barato: (a, b) => (a.presupuestoMin || 0) - (b.presupuestoMin || 0) || b.pct - a.pct
+  };
+
+  function tier(p) {
+    return p >= 85 ? "¡Tienes un gran match!" : p >= 70 ? "Hay muy buenas coincidencias." : p >= 50 ? "Hay opciones por explorar." : "Aún no hay coincidencias altas.";
+  }
+
+  let tToast;
+  function toast(txt) {
+    const t = $("toast");
+    t.textContent = txt;
+    t.hidden = false;
+    try { t.showPopover(); } catch (_) {}
+    clearTimeout(tToast);
+    tToast = setTimeout(() => { try { t.hidePopover(); } catch (_) {} t.hidden = true; }, 2800);
+  }
+
+  function hace(t) {
+    if (!t) return "ahora";
+    const s = Math.max(0, (Date.now() - t) / 1000);
+    if (s < 60) return "ahora";
+    if (s < 3600) return Math.floor(s / 60) + " min";
+    if (s < 86400) return Math.floor(s / 3600) + " h";
+    return Math.floor(s / 86400) + " d";
+  }
+
+  /* ---------- Piezas visuales ---------- */
+  function avatar(r, tam, dot) {
+    const ini = esc((r.nombre || "?").trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase());
+    const v = String(r.id || r.nombre || "").length % 2 ? "a1" : "a0";
+    const cuerpo = r.foto
+      ? `<img class="av ${tam}" src="${esc(r.foto)}" alt="" referrerpolicy="no-referrer" loading="lazy" data-ini="${ini}">`
+      : `<span class="av ${tam} ${v}">${ini}</span>`;
+    return `<span class="avw">${cuerpo}${dot ? '<span class="dot" title="En línea"></span>' : ""}</span>`;
+  }
+  // Si una foto no carga, se muestran las iniciales
+  document.addEventListener("error", (e) => {
+    const t = e.target;
+    if (t.tagName === "IMG" && t.classList.contains("av")) {
+      const s = document.createElement("span");
+      s.className = t.className + " a0";
+      s.textContent = t.dataset.ini || "?";
+      t.replaceWith(s);
+    }
+  }, true);
+
+  function ring(pct, tam, est) {
+    const R = 34, C = +(2 * Math.PI * R).toFixed(1), off = +(C * (1 - pct / 100)).toFixed(1);
+    return `<div class="ring${est ? " est" : ""}" style="--s:${tam}px" role="img" aria-label="Compatibilidad ${pct} por ciento"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="pista" cx="40" cy="40" r="${R}"/><circle class="prog" cx="40" cy="40" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${off}" style="--c:${C}"/></svg><strong>${pct}%</strong></div>`;
+  }
+
+  function ubicTxt(r) {
+    if (r.distanciaKm != null) return `A ${r.distanciaKm} km de ti`;
+    if (r.zona && S.yo.zona && norm(r.zona) === norm(S.yo.zona)) return "Misma zona que tú";
+    return r.zona || "Zona no indicada";
+  }
+
+  function coinciden(r) {
+    return Object.keys(PESOS).filter((k) => r.detalle[k] >= 0.9).sort((a, b) => PESOS[b] - PESOS[a]).slice(0, 3).map((k) => LABEL[k].toLowerCase()).join(" · ");
+  }
+
+  function completitud(p) {
+    if (!p) return 0;
+    const campos = ["nombre", "edad", "bio", "intereses", "universidad", "presupuestoMin", "presupuestoMax", "zona", "mascotas", "ruido", "limpieza", "visitas", "horario"];
+    const llenos = campos.filter((k) => p[k] !== undefined && p[k] !== null && p[k] !== "" && !(typeof p[k] === "number" && isNaN(p[k]))).length + (typeof p.fuma === "boolean" ? 1 : 0);
+    return Math.round((llenos / (campos.length + 1)) * 100);
+  }
+
+  /* ---------- Datos y filtros ---------- */
+  function puntuar() {
+    S.puntuados = S.todos.map((r) => {
+      const c = calcularCompatibilidad(S.yo, r);
+      return { ...r, pct: Number.isFinite(c.total) ? c.total : 0, detalle: c.detalle, demo: !r.perfilCompleto };
+    });
+  }
+
+  function filtrados() {
+    const f = S.filtros, q = norm(f.q).trim();
+    return S.puntuados.filter((r) => {
+      if (q && !norm([r.nombre, r.bio, r.intereses, r.zona, r.universidad].join(" ")).includes(q)) return false;
+      if (f.zona && !norm(r.zona).includes(norm(f.zona))) return false;
+      if (f.dist && r.distanciaKm != null && r.distanciaKm > Number(f.dist)) return false;
+      if (f.presMax && (r.presupuestoMin || 0) > Number(f.presMax)) return false;
+      if (f.mascotas) { if (f.mascotas === "con" ? r.mascotas === "ninguna" : r.mascotas !== f.mascotas) return false; }
+      if (f.ruido && r.ruido !== f.ruido) return false;
+      if (f.limpieza && r.limpieza !== f.limpieza) return false;
+      if (f.horario && r.horario !== f.horario) return false;
+      if (f.visitas && r.visitas !== f.visitas) return false;
+      if (f.fuma !== "" && String(!!r.fuma) !== f.fuma) return false;
+      if (r.pct < f.minCompat) return false;
+      if (f.soloLinea && (r.demo || !enLinea(r))) return false;
+      if (f.soloFavs && !S.favs.has(r.id)) return false;
+      return true;
+    }).sort(ORDEN[S.orden] || ORDEN.compat);
+  }
+
+  /* ---------- Pintar: lista ---------- */
+  function cardHTML(r) {
+    const fav = S.favs.has(r.id), lin = !r.demo && enLinea(r);
+    const coin = S.completo ? coinciden(r) : "";
+    const id = esc(r.id);
+    return `<article class="card">
+      ${avatar(r, "lg", lin)}
+      <div class="info">
+        <div class="nom"><h3>${esc(r.nombre)}</h3><span>${esc(r.edad)} años · ${esc(r.ocupacion || "Estudiante")}</span></div>
+        <div class="badges"><span class="b">${ico("pin")}${esc(ubicTxt(r))}</span>${lin ? '<span class="b lin">En línea</span>' : ""}${r.demo ? '<span class="b ej">Perfil de ejemplo</span>' : ""}</div>
+        <p class="bio">${esc(r.bio || "Sin descripción todavía.")}</p>
+        ${coin ? `<p class="coin">${ico("check")}Coinciden en: ${esc(coin)}</p>` : ""}
+      </div>
+      <div class="lado">
+        ${ring(r.pct, 76, !S.completo)}<small>${S.completo ? "Compatibilidad" : "Estimada"}</small>
+        <div class="acc">
+          <button class="btn chico" type="button" data-act="ver" data-id="${id}">Ver perfil</button>
+          <button class="fav${fav ? " on" : ""}" type="button" data-act="fav" data-id="${id}" aria-pressed="${fav}" aria-label="${fav ? "Quitar de favoritos" : "Guardar en favoritos"}">${ico("heart")}</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">${ico("coin")}<div><b>${dinero(r.presupuestoMin)} - ${dinero(r.presupuestoMax)}</b><small>Presupuesto</small></div></div>
+        <div class="stat">${ico("pin")}<div><b>${esc(r.zona || (r.distanciaKm != null ? r.distanciaKm + " km" : "—"))}</b><small>Ubicación</small></div></div>
+        <div class="stat">${ico("paw")}<div><b>${esc(mascotaTxt(r.mascotas))}</b><small>Mascotas</small></div></div>
+        <div class="stat">${ico("moon")}<div><b>Horario ${esc(r.horario || "—")}</b><small>Ruido ${esc(r.ruido || "—")} · Visitas ${esc(r.visitas || "—")}</small></div></div>
+      </div>
+    </article>`;
+  }
+
+  function renderLista() {
+    const lista = filtrados(), cont = $("lista");
+    $("conteo").textContent = lista.length === 1 ? "1 perfil" : lista.length + " perfiles";
+    actualizarChips();
+    if (!S.todos.length) {
+      cont.innerHTML = `<div class="vacio"><h3>Aún no hay perfiles</h3><p>Cuando más estudiantes completen su perfil aparecerán aquí.</p></div>`;
+    } else if (!lista.length) {
+      cont.innerHTML = `<div class="vacio"><h3>Sin resultados</h3><p>Prueba quitar algunos filtros o cambiar la búsqueda.</p><button class="btn" type="button" data-act="limpiar">Limpiar filtros</button></div>`;
+    } else {
+      const visibles = lista.slice(0, S.pagina * PAGINA);
+      cont.innerHTML = visibles.map(cardHTML).join("") +
+        (visibles.length < lista.length ? `<button class="btn suave mas" type="button" data-act="mas">Mostrar más (${lista.length - visibles.length})</button>` : "");
+    }
+  }
+
+  function mostrarError(e) {
+    const permiso = e && e.code === "permission-denied";
+    $("lista").innerHTML = `<div class="vacio"><h3>No pudimos cargar los perfiles</h3><p>${permiso ? "Faltan permisos. Revisa que las reglas de Firestore estén publicadas." : "Revisa tu conexión e inténtalo de nuevo."}</p><button class="btn" type="button" data-act="reintentar">Reintentar</button></div>`;
+    $("conteo").textContent = "";
+                                        }
+  function renderCompat() {
+    const top = [...S.puntuados].sort(ORDEN.compat)[0];
+    let h;
+    if (!top) {
+      h = `<div class="hero"><div class="ring vacio" style="--s:130px"><strong>—</strong></div><p>Aún no hay perfiles para comparar.</p></div>`;
+    } else if (!S.completo) {
+      h = `<div class="hero"><div class="ring vacio" style="--s:130px"><strong>—</strong></div><p>Completa tu perfil para calcular tu compatibilidad real.</p><a class="btn" href="perfil.html">Completar perfil</a></div>`;
+    } else {
+      h = `<div class="hero">${ring(top.pct, 130, false)}<strong class="t">${tier(top.pct)}</strong><p>Tu mejor coincidencia es <b>${esc(top.nombre)}</b>. Tus preferencias coinciden en la mayoría de los aspectos.</p><button class="btn suave" type="button" data-act="ver" data-id="${esc(top.id)}">Ver detalles</button></div>`;
+    }
+    $("compat").innerHTML = `<h2>Tu compatibilidad actual</h2>${h}`;
+  }
+
+  function renderPerfil() {
+    const p = S.perfil || {}, comp = completitud(S.perfil);
+    const edad = p.edad ? p.edad + " años" : "Edad sin indicar";
+    const filas = S.completo
+      ? `<div class="fila-i">${ico("coin")}${dinero(p.presupuestoMin)} - ${dinero(p.presupuestoMax)}</div>
+         <div class="fila-i">${ico("pin")}${esc(p.zona || "Zona sin indicar")}</div>
+         <div class="fila-i">${ico("paw")}${esc(mascotaTxt(p.mascotas))}</div>
+         <div class="fila-i">${ico("moon")}Horario ${esc(p.horario || "—")} · Ruido ${esc(p.ruido || "—")}</div>`
+      : `<p class="nota">Aún no completas tus preferencias de vivienda.</p>`;
+    $("miPerfil").innerHTML = `
+      <div class="cab-p"><h2>Tu perfil</h2><a href="perfil.html">${ico("edit")}Editar</a></div>
+      <div class="quien">${avatar({ nombre: nombreUsuario(), foto: fotoUsuario(), id: S.user.uid }, "md", false)}<div><b>${esc(nombreUsuario())}</b><span>${esc(edad)} · ${esc(p.ocupacion || "Estudiante")}</span></div></div>
+      <div class="filas">${filas}</div>
+      <div><div class="comp-t"><span>Perfil completo</span><b>${comp}%</b></div><div class="barra"><i style="width:${comp}%"></i></div></div>
+      ${comp < 100 ? `<a class="btn suave chico" href="perfil.html">Completar mi perfil</a>` : ""}`;
+  }
+
+  function render() {
+    $("banner").hidden = S.completo;
+    renderCabecera(); renderLista(); renderCompat(); renderPerfil();
+  }
+
+  /* ---------- Modal "Ver perfil" ---------- */
+  function abrirPerfil(id) {
+    const r = S.puntuados.find((x) => String(x.id) === String(id));
+    if (!r) return;
+    const fav = S.favs.has(r.id), lin = !r.demo && enLinea(r), ide = esc(r.id);
+    const filas = S.completo
+      ? Object.keys(PESOS).sort((a, b) => PESOS[b] - PESOS[a]).map((k) => {
+          const p = Math.round((r.detalle[k] || 0) * 100), pts = Math.round((r.detalle[k] || 0) * PESOS[k]);
+          return `<div class="crit"><span>${LABEL[k]}</span><div class="barra"><i style="width:${p}%"></i></div><b>${pts}/${PESOS[k]}</b></div>`;
+        }).join("")
+      : `<p class="nota">Completa tu perfil para ver el detalle real de tu compatibilidad.</p>`;
+    $("dlg").innerHTML = `<div class="dlg-in">
+      <button class="icono x" type="button" data-act="cerrar" aria-label="Cerrar">${ico("close")}</button>
+      <div class="dlg-cab">${avatar(r, "xl", lin)}<div>
+        <h2 id="dlgTitulo">${esc(r.nombre)}</h2>
+        <p>${esc(r.edad)} años · ${esc(r.ocupacion || "Estudiante")}${r.universidad ? " · " + esc(r.universidad) : ""}</p>
+        <div class="badges" style="margin-top:8px"><span class="b">${ico("pin")}${esc(ubicTxt(r))}</span>${lin ? '<span class="b lin">En línea</span>' : ""}${r.demo ? '<span class="b ej">Perfil de ejemplo</span>' : ""}</div>
+      </div></div>
+      <div class="dlg-comp">${ring(r.pct, 96, !S.completo)}<div><b>${S.completo ? "Compatibilidad contigo" : "Compatibilidad estimada"}</b><p>${tier(r.pct)}</p></div></div>
+      <p>${esc(r.bio || "Sin descripción todavía.")}</p>
+      ${r.intereses ? `<p><b>Intereses:</b> ${esc(r.intereses)}</p>` : ""}
+      <div class="chips">
+        <span class="b">${dinero(r.presupuestoMin)} - ${dinero(r.presupuestoMax)}</span>
+        <span class="b">${esc(mascotaTxt(r.mascotas))}</span>
+        <span class="b">Ruido ${esc(r.ruido || "—")}</span>
+        <span class="b">Limpieza ${esc(r.limpieza || "—")}</span>
+        <span class="b">Visitas ${esc(r.visitas || "—")}</span>
+        <span class="b">Horario ${esc(r.horario || "—")}</span>
+        <span class="b">${r.fuma ? "Fuma" : "No fuma"}</span>
+      </div>
+      <h3>Cómo se compara contigo</h3>
+      <div class="crits">${filas}</div>
+      <div class="dlg-acc">
+        <button class="btn" type="button" data-act="msg" data-id="${ide}"${r.demo ? " disabled" : ""}>${ico("chat")}Enviar mensaje</button>
+        <button class="btn suave${fav ? " on" : ""}" type="button" data-act="fav" data-id="${ide}" aria-pressed="${fav}">${ico("heart")}<span class="txt">${fav ? "Quitar de favoritos" : "Guardar en favoritos"}</span></button>
+      </div>
+      ${r.demo ? '<p class="nota">Este es un perfil de ejemplo para la demostración, no puede recibir mensajes.</p>' : ""}
+    </div>`;
+    $("dlg").showModal();
+  }
+  $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
+
+  /* ---------- Favoritos y mensajes ---------- */
+  function pintarFavs() {
+    document.querySelectorAll('[data-act="fav"]').forEach((b) => {
+      const on = S.favs.has(b.dataset.id);
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+      const t = b.querySelector(".txt");
+      if (t) t.textContent = on ? "Quitar de favoritos" : "Guardar en favoritos";
+      else b.setAttribute("aria-label", on ? "Quitar de favoritos" : "Guardar en favoritos");
+    });
+    if (S.filtros.soloFavs) renderLista();
+        }
+
+async function toggleFav(id) {
+    const era = S.favs.has(id);
+    era ? S.favs.delete(id) : S.favs.add(id);
+    pintarFavs();
+    try {
+      await alternarFavorito(S.user.uid, id, era);
+      toast(era ? "Quitado de favoritos" : "Guardado en favoritos");
+    } catch (e) {
+      era ? S.favs.add(id) : S.favs.delete(id);
+      pintarFavs();
+      toast("No se pudo guardar. Inténtalo de nuevo.");
+    }
+  }
+
+  async function enviarA(id) {
+    const r = S.puntuados.find((x) => String(x.id) === String(id));
+    if (!r) return;
+    if (r.demo) { toast("Es un perfil de ejemplo y no puede recibir mensajes."); return; }
+    try {
+      const cid = await abrirConversacion({ uid: S.user.uid, nombre: nombreUsuario(), foto: fotoUsuario() }, r);
+      location.href = "mensajes.html?c=" + encodeURIComponent(cid);
+    } catch (e) { toast("No se pudo abrir la conversación."); }
+  }
+
+  /* ---------- Notificaciones ---------- */
+  const otroDe = (c) => {
+    const id = c.participantes.find((p) => p !== S.user.uid), d = (c.datos && c.datos[id]) || {};
+    return { id: c.id, nombre: d.nombre || "Usuario", foto: d.foto || "" };
+  };
+  const pendientes = () => S.convs.filter((c) => c.ultimoDe && c.ultimoDe !== S.user.uid && ms(c.actualizado) > S.notifVistas);
+
+  function pintarBadges() {
+    const n = pendientes().length, txt = n > 9 ? "9+" : String(n);
+    ["campanaBadge", "navBadgeMsg"].forEach((id) => { $(id).hidden = !n; $(id).textContent = txt; });
+  }
+
+  function renderNotif(nuevas) {
+    const lista = S.convs.slice(0, 6);
+    $("panelNotif").innerHTML = `<h4>Notificaciones</h4>` + (lista.length
+      ? lista.map((c) => { const o = otroDe(c);
+          return `<a class="notif${nuevas.has(c.id) ? " nueva" : ""}" href="mensajes.html?c=${encodeURIComponent(c.id)}">${avatar(o, "sm", false)}<div><strong>${esc(o.nombre)}</strong><span>${esc(c.ultimoMensaje || "Conversación iniciada")}</span></div><small>${hace(ms(c.actualizado))}</small></a>`; }).join("")
+      : `<p class="vacio-mini">Aún no tienes mensajes. Escribe a alguien desde su perfil.</p>`) +
+      `<a class="btn suave chico" href="mensajes.html">Ver todos los mensajes</a>`;
+  }
+
+  function abrirNotif() {
+    const nuevas = new Set(pendientes().map((c) => c.id));
+    renderNotif(nuevas);
+    if (nuevas.size) {
+      S.notifVistas = Math.max(0, ...S.convs.map((c) => ms(c.actualizado)));
+      pintarBadges();
+      marcarNotifVistas(S.user.uid).catch(() => {});
+    }
+  }
+
+  /* ---------- Ventanitas (filtros, campana, usuario) ---------- */
+  const pops = [];
+  function cerrarPops() {
+    pops.forEach((p) => { p.panel.hidden = true; p.btn.setAttribute("aria-expanded", "false"); });
+    document.body.classList.remove("sheet-abierto");
+  }
+  function registrarPop(btn, panel) {
+    pops.push({ btn, panel });
+    btn.addEventListener("click", () => {
+      const abrir = panel.hidden;
+      cerrarPops();
+      if (abrir) {
+        panel.hidden = false;
+        btn.setAttribute("aria-expanded", "true");
+        document.body.classList.add("sheet-abierto");
+        if (panel.id === "panelNotif") abrirNotif();
+      }
+    });
+  }
+  registrarPop($("btnCampana"), $("panelNotif"));
+  registrarPop($("btnUsuario"), $("panelUsuario"));
+  document.querySelectorAll(".fchip").forEach((b) => registrarPop(b, $(b.dataset.pop)));
+  document.querySelectorAll(".listo").forEach((b) => (b.onclick = cerrarPops));
+  $("veloPop").onclick = cerrarPops;
+  document.addEventListener("click", (e) => { if (!e.target.closest(".fw, .menu-pop")) cerrarPops(); });
+
+  /* ---------- Menú lateral (celular y tablet vertical) ---------- */
+  function setMenu(abierto) {
+    $("lateral").classList.toggle("abierto", abierto);
+    $("velo").hidden = !abierto;
+    $("btnMenu").setAttribute("aria-expanded", String(abierto));
+    document.body.classList.toggle("sin-scroll", abierto);
+  }
+  $("btnMenu").onclick = () => setMenu(true);
+  $("btnCerrarMenu").onclick = () => setMenu(false);
+  $("velo").onclick = () => setMenu(false);
+  window.matchMedia("(min-width:901px)").addEventListener("change", (e) => { if (e.matches) setMenu(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { cerrarPops(); setMenu(false); } });
+
+  /* ---------- Filtros ---------- */
+  const CTRL = { fZona: "zona", fDist: "dist", fPres: "presMax", fMasc: "mascotas", fRuido: "ruido", fLimp: "limpieza", fHor: "horario", fVis: "visitas", fFuma: "fuma" };
+
+  function sincronizarControles() {
+    const f = S.filtros;
+    for (const [id, k] of Object.entries(CTRL)) $(id).value = f[k] ?? "";
+    $("fMin").value = f.minCompat;
+    $("fMinOut").textContent = f.minCompat + "%";
+    $("fLinea").checked = f.soloLinea;
+    $("fFavs").checked = f.soloFavs;
+    $("q").value = f.q;
+    $("orden").value = S.orden;
+    }
+    function actualizarChips() {
+    const f = S.filtros;
+    const n = {
+      pUbic: [f.zona, f.dist].filter(Boolean).length,
+      pPres: f.presMax ? 1 : 0,
+      pMasc: f.mascotas ? 1 : 0,
+      pMas: [f.ruido, f.limpieza, f.horario, f.visitas, f.fuma].filter((v) => v !== "").length + (f.minCompat > 0 ? 1 : 0) + (f.soloLinea ? 1 : 0) + (f.soloFavs ? 1 : 0)
+    };
+    document.querySelectorAll(".fchip").forEach((b) => {
+      const k = n[b.dataset.pop], c = b.querySelector(".cnt");
+      c.hidden = !k; c.textContent = k; b.classList.toggle("activo", !!k);
+    });
+    $("btnLimpiar").hidden = !Object.values(n).some(Boolean);
+  }
+
+  let tGuardar;
+  function guardarPrefs() {
+    clearTimeout(tGuardar);
+    tGuardar = setTimeout(() => {
+      if (!S.cuenta) return;
+      const { q, ...f } = S.filtros;
+      guardarPreferenciasInicio(S.user.uid, { filtros: f, orden: S.orden }).catch(() => {});
+    }, 900);
+  }
+  function cambioFiltros() { S.pagina = 1; renderLista(); guardarPrefs(); }
+  function limpiarFiltros() { S.filtros = { ...DEF, q: S.filtros.q }; sincronizarControles(); cambioFiltros(); }
+
+  for (const [id, k] of Object.entries(CTRL)) $(id).addEventListener("input", () => { S.filtros[k] = $(id).value.trim(); cambioFiltros(); });
+  $("fMin").addEventListener("input", () => { S.filtros.minCompat = Number($("fMin").value); $("fMinOut").textContent = S.filtros.minCompat + "%"; cambioFiltros(); });
+  $("fLinea").addEventListener("change", () => { S.filtros.soloLinea = $("fLinea").checked; cambioFiltros(); });
+  $("fFavs").addEventListener("change", () => { S.filtros.soloFavs = $("fFavs").checked; cambioFiltros(); });
+  $("orden").addEventListener("change", () => { S.orden = $("orden").value; cambioFiltros(); });
+  $("btnLimpiar").onclick = limpiarFiltros;
+  $("usarZona").onclick = () => {
+    if (!S.completo || !S.yo.zona) { toast("Agrega tu zona en Mi perfil."); return; }
+    $("fZona").value = S.filtros.zona = S.yo.zona; cambioFiltros();
+  };
+  $("usarPres").onclick = () => {
+    if (!S.completo || !S.yo.presupuestoMax) { toast("Agrega tu presupuesto en Mi perfil."); return; }
+    $("fPres").value = S.filtros.presMax = String(S.yo.presupuestoMax); cambioFiltros();
+  };
+  $("q").addEventListener("input", () => { S.filtros.q = $("q").value; S.pagina = 1; renderLista(); });
+  $("formBuscar").addEventListener("submit", (e) => e.preventDefault());
+
+  /* ---------- Acciones (delegación de eventos) ---------- */
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]");
+    if (!el) return;
+    const id = el.dataset.id;
+    switch (el.dataset.act) {
+      case "ver": abrirPerfil(id); break;
+      case "fav": toggleFav(id); break;
+      case "msg": enviarA(id); break;
+      case "mas": S.pagina++; renderLista(); break;
+      case "limpiar": limpiarFiltros(); break;
+      case "cerrar": $("dlg").close(); break;
+      case "reintentar": cargarTodo(); break;
+      case "salir": signOut(auth).then(() => location.replace(LOGIN)); break;
+    }
+  });
+
+  /* ---------- Carga ---------- */
+  const filtrarEjemplos = (l) => (MOSTRAR_EJEMPLOS ? l : l.filter((r) => r.perfilCompleto));
+
+  async function cargarTodo() {
+    $("lista").innerHTML = '<div class="card sk"></div>'.repeat(3);
+    try {
+      const uid = S.user.uid;
+      const [perfil, cuenta, cands, favs] = await Promise.all([cargarPerfil(uid), cargarCuenta(uid), cargarCandidatos(uid), cargarFavoritos(uid)]);
+      S.perfil = perfil;
+      S.cuenta = cuenta;
+      S.completo = !!(perfil && perfil.perfilCompleto);
+      S.yo = S.completo ? perfil : PERFIL_DEMO;
+      S.todos = filtrarEjemplos(cands);
+      S.favs = new Set(favs);
+      S.notifVistas = ms(cuenta && cuenta.notifVistas);
+      const pref = cuenta && cuenta.preferenciasInicio;
+      if (pref) {
+        S.filtros = { ...DEF, ...(pref.filtros || {}), q: "" };
+        S.orden = ORDEN[pref.orden] ? pref.orden : "compat";
+      }
+      S.ultimaRecarga = Date.now();
+      puntuar();
+      sincronizarControles();
+      render();
+      pintarBadges();
+      latido();
+    } catch (e) { console.error(e); mostrarError(e); }
+  }
+
+  async function recargarCandidatos() {
+    if (Date.now() - S.ultimaRecarga < 60000) return;
+    S.ultimaRecarga = Date.now();
+    try { S.todos = filtrarEjemplos(await cargarCandidatos(S.user.uid)); puntuar(); renderLista(); renderCompat(); } catch (_) {}
+  }
+
+  function latido() {
+    if (S.perfil && document.visibilityState === "visible") marcarActividad(S.user.uid).catch(() => {});
+  }
+
+  /* ---------- Arranque ---------- */
+  let iniciado = false;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { location.replace(LOGIN); return; }
+    if (iniciado) return;
+    iniciado = true;
+    S.user = user;
+    renderCabecera();
+    $("cargaInicial").remove();
+    $("app").hidden = false;
+
+    escucharConversaciones(user.uid, (lista) => {
+      S.convs = lista;
+      pintarBadges();
+      if (!$("panelNotif").hidden) renderNotif(new Set(pendientes().map((c) => c.id)));
+    });
+
+    setInterval(() => { latido(); recargarCandidatos(); }, 120000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { latido(); recargarCandidatos(); } });
+    cargarTodo();
+  });
+</script>
+</body>
+</html>
