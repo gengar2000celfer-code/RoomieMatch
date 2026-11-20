@@ -77,3 +77,18 @@ import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, whe
                                                                                                                           await Promise.all(f.docs.map(d => deleteDoc(d.ref)));
                                                                                                                             await deleteDoc(doc(db, "usuarios", uid));
                                                                                                                             }
+
+// ---- Index: cuenta privada, preferencias y actividad ----
+export async function cargarCuenta(uid) {
+  const s = await getDoc(doc(db, "cuentas", uid));
+  return s.exists() ? s.data() : null;
+}
+export async function guardarPreferenciasInicio(uid, prefs) {
+  await setDoc(doc(db, "cuentas", uid), { preferenciasInicio: prefs }, { merge: true });
+}
+export async function marcarNotifVistas(uid) {
+  await setDoc(doc(db, "cuentas", uid), { notifVistas: serverTimestamp() }, { merge: true });
+}
+export async function marcarActividad(uid) {
+  await setDoc(doc(db, "usuarios", uid), { ultimaActividad: serverTimestamp() }, { merge: true });
+}
