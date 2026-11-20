@@ -53,11 +53,11 @@ import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, whe
                                                                                     return cid;
                                                                                     }
                                                                                     export async function enviarMensaje(cid, uid, texto) {
-                                                                                      await addDoc(collection(db, "conversaciones", cid, "mensajes"),
-                                                                                          { de: uid, texto, fecha: serverTimestamp() });
-                                                                                            await setDoc(doc(db, "conversaciones", cid),
-                                                                                                { ultimoMensaje: texto, actualizado: serverTimestamp() }, { merge: true });
-                                                                                                }
+  await addDoc(collection(db, "conversaciones", cid, "mensajes"),
+    { de: uid, texto, fecha: serverTimestamp() });
+  await setDoc(doc(db, "conversaciones", cid),
+    { ultimoMensaje: texto, ultimoDe: uid, actualizado: serverTimestamp() }, { merge: true });
+                                                                                    }
                                                                                                 export function escucharMensajes(cid, cb) {
                                                                                                   const q = query(collection(db, "conversaciones", cid, "mensajes"), orderBy("fecha"));
                                                                                                     return onSnapshot(q, s => cb(s.docs.map(d => d.data())));
