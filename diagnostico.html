@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Diagnóstico</title>
+  <title>Diagnóstico del Index</title>
   <style>
     body{font:16px system-ui;background:#F3FAF2;color:#4E8F5B;padding:16px}
     li{margin:10px 0;word-break:break-word}
@@ -12,49 +12,49 @@
   </style>
 </head>
 <body>
-<h2>Diagnóstico RoomieMatch</h2>
+<h2>Diagnóstico del Index</h2>
 <ul id="r"></ul>
 <script type="module">
   const r = document.getElementById("r");
   const log = (ok, t) => { const li = document.createElement("li"); li.className = ok ? "ok" : "mal"; li.textContent = (ok ? "✓ " : "✗ ") + t; r.appendChild(li); };
-  const prueba = async (nombre, fn) => {
-    try {
-      const v = await Promise.race([fn(), new Promise((_, j) => setTimeout(() => j({ code: "timeout (12 s)" }), 12000))]);
-      log(true, nombre + (v ? ": " + v : ""));
-    } catch (e) { log(false, nombre + ": " + (e.code || e.message || e)); }
-  };
 
-  let fb, compat, datos, user;
+  let html = "";
+  try {
+    const x = await fetch("index.html?v=" + Date.now(), { cache: "no-store" });
+    log(x.ok, "Descargar index.html (HTTP " + x.status + ", " + (x.headers.get("content-length") || "?") + " bytes)");
+    html = await x.text();
+  } catch (e) { log(false, "No se pudo descargar index.html"); }
 
-  await prueba("Cargar js/firebase.js", async () => { fb = await import("./js/firebase.js"); return Object.keys(fb).join(", "); });
-  await prueba("Cargar js/compat.js", async () => {
-    compat = await import("./js/compat.js");
-    if (!compat.PESOS || !compat.PERFIL_DEMO || !compat.calcularCompatibilidad) throw { message: "faltan exportaciones (PESOS, PERFIL_DEMO o calcularCompatibilidad)" };
-  });
-  await prueba("Cargar js/datos.js", async () => {
-    datos = await import("./js/datos.js");
-    const f = ["cargarPerfil","cargarCuenta","cargarCandidatos","cargarFavoritos","alternarFavorito","abrirConversacion","escucharConversaciones","guardarPreferenciasInicio","marcarActividad","marcarNotifVistas"].filter((n) => typeof datos[n] !== "function");
-    if (f.length) throw { message: "faltan: " + f.join(", ") };
-  });
-  await prueba("Cargar data/roomies.json", async () => {
-    const x = await fetch("data/roomies.json");
-    if (!x.ok) throw { message: "HTTP " + x.status };
-    return (await x.json()).length + " perfiles";
-  });
+  if (html) {
+    log(html.includes('id="cargaInicial"') && html.includes("Resultados de compatibilidad"), "Es la versión nueva del Index");
+    log(html.includes("css/inicio.css"), "Enlaza css/inicio.css");
 
-  if (fb) {
-    await prueba("Sesión iniciada", async () => {
-      user = await new Promise((res) => { const u = fb.onAuthStateChanged(fb.auth, (x) => { u(); res(x); }); });
-      if (!user) throw { message: "no hay sesión, entra primero por login.html" };
-      return user.email || user.uid;
-    });
-    if (user && datos) {
-      await prueba("Leer usuarios/{uid}", async () => (await datos.cargarPerfil(user.uid)) ? "existe" : "no existe");
-      await prueba("Leer cuentas/{uid}", async () => (await datos.cargarCuenta(user.uid)) ? "existe" : "no existe");
-      await prueba("Leer colección usuarios", async () => (await datos.cargarCandidatos(user.uid)).length + " candidatos");
-      await prueba("Leer favoritos", async () => (await datos.cargarFavoritos(user.uid)).length + " favoritos");
-    }
+    const modulos = html.match(/<script type="module">/g) || [];
+    log(modulos.length === 1, "Scripts de tipo módulo: " + modulos.length + " (debe ser 1)");
+
+    const m = html.match(/<script type="module">([\s\S]*?)<\/script>/);
+    if (m) {
+      const codigo = m[1].replace(/import\s*\{[^}]*\}\s*from\s*"[^"]+";?/g, "");
+      try {
+        const AF = Object.getPrototypeOf(async function () {}).constructor;
+        new AF(codigo); // solo comprueba la sintaxis, no ejecuta nada
+        log(true, "El script del Index no tiene errores de sintaxis");
+      } catch (e) { log(false, "Error de sintaxis en el script del Index: " + e.message); }
+
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const ids = new Set();
+      for (const x of codigo.matchAll(/\$\("([A-Za-z0-9_-]+)"\)/g)) ids.add(x[1]);
+      for (const x of codigo.matchAll(/getElementById\("([A-Za-z0-9_-]+)"\)/g)) ids.add(x[1]);
+      const faltan = [...ids].filter((id) => !doc.getElementById(id));
+      log(!faltan.length, faltan.length ? "Faltan elementos en el HTML: " + faltan.join(", ") : "Todos los elementos que usa el código existen (" + ids.size + ")");
+    } else log(false, "No se encontró el script de tipo módulo");
   }
+
+  try {
+    const c = await fetch("css/inicio.css?v=" + Date.now(), { cache: "no-store" });
+    log(c.ok, "Descargar css/inicio.css (HTTP " + c.status + ")");
+  } catch (e) { log(false, "No se pudo descargar css/inicio.css"); }
+
   log(true, "Fin del diagnóstico");
 </script>
 </body>
