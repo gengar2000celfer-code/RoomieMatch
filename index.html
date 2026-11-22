@@ -198,7 +198,21 @@
 
 <dialog id="dlg" class="dlg" aria-labelledby="dlgTitulo"></dialog>
 <div id="toast" class="toast" popover="manual" role="status" aria-live="polite" hidden></div>
+<script>
+(function () {
+  function mostrar(msg) {
+    var c = document.getElementById("cargaInicial");
+    if (!c) return;
+    c.innerHTML = '<div style="max-width:420px;padding:20px;text-align:center;font:16px system-ui;color:#4E8F5B"><b>No se pudo iniciar la página</b><p style="margin:10px 0;word-break:break-word"></p><button onclick="location.reload()" style="padding:12px 20px;border:0;border-radius:14px;background:#4E8F5B;color:#F3FAF2;font-weight:800">Reintentar</button></div>';
+    c.querySelector("p").textContent = msg;
+  }
+  window.addEventListener("error", function (e) { mostrar(e.message || "Error al cargar un archivo"); });
+  window.addEventListener("unhandledrejection", function (e) { mostrar((e.reason && (e.reason.code || e.reason.message)) || "Error"); });
+  setTimeout(function () { mostrar("Tardó demasiado. Revisa tu conexión."); }, 10000);
+})();
+</script>
 
+  
 <script type="module">
   import { auth, onAuthStateChanged, signOut } from "./js/firebase.js";
   import { calcularCompatibilidad, PERFIL_DEMO, PESOS } from "./js/compat.js";
@@ -379,7 +393,13 @@
     const permiso = e && e.code === "permission-denied";
     $("lista").innerHTML = `<div class="vacio"><h3>No pudimos cargar los perfiles</h3><p>${permiso ? "Faltan permisos. Revisa que las reglas de Firestore estén publicadas." : "Revisa tu conexión e inténtalo de nuevo."}</p><button class="btn" type="button" data-act="reintentar">Reintentar</button></div>`;
     $("conteo").textContent = "";
-                                        }
+    }
+    /* ---------- Pintar: cabecera y columna derecha ---------- */
+  function renderCabecera() {
+    $("nombreTop").textContent = nombreUsuario().split(" ")[0];
+    $("avatarTop").innerHTML = avatar({ nombre: nombreUsuario(), foto: fotoUsuario(), id: S.user.uid }, "xs", false);
+  }
+  
   function renderCompat() {
     const top = [...S.puntuados].sort(ORDEN.compat)[0];
     let h;
@@ -645,7 +665,10 @@ async function toggleFav(id) {
     $("lista").innerHTML = '<div class="card sk"></div>'.repeat(3);
     try {
       const uid = S.user.uid;
-      const [perfil, cuenta, cands, favs] = await Promise.all([cargarPerfil(uid), cargarCuenta(uid), cargarCandidatos(uid), cargarFavoritos(uid)]);
+      const [perfil, cuenta, cands, favs] = await Promise.race([
+  Promise.all([cargarPerfil(uid), cargarCuenta(uid), cargarCandidatos(uid), cargarFavoritos(uid)]),
+  new Promise((_, rej) => setTimeout(() => rej({ code: "timeout" }), 12000))
+]);
       S.perfil = perfil;
       S.cuenta = cuenta;
       S.completo = !!(perfil && perfil.perfilCompleto);
