@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diagnóstico</title>
+  <style>
+    body{font:16px system-ui;background:#F3FAF2;color:#4E8F5B;padding:16px}
+    li{margin:10px 0;word-break:break-word}
+    .ok{font-weight:600}
+    .mal{font-weight:800;text-decoration:underline}
+  </style>
+</head>
+<body>
+<h2>Diagnóstico RoomieMatch</h2>
+<ul id="r"></ul>
+<script type="module">
+  const r = document.getElementById("r");
+  const log = (ok, t) => { const li = document.createElement("li"); li.className = ok ? "ok" : "mal"; li.textContent = (ok ? "✓ " : "✗ ") + t; r.appendChild(li); };
+  const prueba = async (nombre, fn) => {
+    try {
+      const v = await Promise.race([fn(), new Promise((_, j) => setTimeout(() => j({ code: "timeout (12 s)" }), 12000))]);
+      log(true, nombre + (v ? ": " + v : ""));
+    } catch (e) { log(false, nombre + ": " + (e.code || e.message || e)); }
+  };
+
+  let fb, compat, datos, user;
+
+  await prueba("Cargar js/firebase.js", async () => { fb = await import("./js/firebase.js"); return Object.keys(fb).join(", "); });
+  await prueba("Cargar js/compat.js", async () => {
+    compat = await import("./js/compat.js");
+    if (!compat.PESOS || !compat.PERFIL_DEMO || !compat.calcularCompatibilidad) throw { message: "faltan exportaciones (PESOS, PERFIL_DEMO o calcularCompatibilidad)" };
+  });
+  await prueba("Cargar js/datos.js", async () => {
+    datos = await import("./js/datos.js");
+    const f = ["cargarPerfil","cargarCuenta","cargarCandidatos","cargarFavoritos","alternarFavorito","abrirConversacion","escucharConversaciones","guardarPreferenciasInicio","marcarActividad","marcarNotifVistas"].filter((n) => typeof datos[n] !== "function");
+    if (f.length) throw { message: "faltan: " + f.join(", ") };
+  });
+  await prueba("Cargar data/roomies.json", async () => {
+    const x = await fetch("data/roomies.json");
+    if (!x.ok) throw { message: "HTTP " + x.status };
+    return (await x.json()).length + " perfiles";
+  });
+
+  if (fb) {
+    await prueba("Sesión iniciada", async () => {
+      user = await new Promise((res) => { const u = fb.onAuthStateChanged(fb.auth, (x) => { u(); res(x); }); });
+      if (!user) throw { message: "no hay sesión, entra primero por login.html" };
+      return user.email || user.uid;
+    });
+    if (user && datos) {
+      await prueba("Leer usuarios/{uid}", async () => (await datos.cargarPerfil(user.uid)) ? "existe" : "no existe");
+      await prueba("Leer cuentas/{uid}", async () => (await datos.cargarCuenta(user.uid)) ? "existe" : "no existe");
+      await prueba("Leer colección usuarios", async () => (await datos.cargarCandidatos(user.uid)).length + " candidatos");
+      await prueba("Leer favoritos", async () => (await datos.cargarFavoritos(user.uid)).length + " favoritos");
+    }
+  }
+  log(true, "Fin del diagnóstico");
+</script>
+</body>
+</html>
